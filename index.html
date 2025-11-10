@@ -1,0 +1,3505 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-FACTURE - Système de Facturation Auto-École</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --success: #06d6a0;
+            --warning: #ffd166;
+            --danger: #ef476f;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --border: #e9ecef;
+            --admin: #ff6b6b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            color: var(--dark);
+            min-height: 100vh;
+        }
+        
+        /* Pages d'authentification */
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .auth-card {
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            width: 100%;
+            max-width: 450px;
+            transition: all 0.4s ease;
+        }
+        
+        .auth-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
+        }
+        
+        .auth-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            position: relative;
+        }
+        
+        .admin-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--admin);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .auth-header h1 {
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .auth-header p {
+            opacity: 0.9;
+            margin-bottom: 0;
+        }
+        
+        .auth-body {
+            padding: 2.5rem 2rem;
+        }
+        
+        .auth-footer {
+            padding: 1.5rem 2rem;
+            text-align: center;
+            background: rgba(67, 97, 238, 0.05);
+            border-top: 1px solid var(--border);
+        }
+        
+        .form-control {
+            border-radius: 12px;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+        
+        .btn-auth {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn-auth:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+        }
+        
+        .btn-admin {
+            background: linear-gradient(135deg, var(--admin), #ff5252);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+        
+        .btn-admin:hover {
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+        
+        .user-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .user-type-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: white;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .user-type-btn.active {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+        }
+        
+        .user-type-btn.admin.active {
+            border-color: var(--admin);
+            background: rgba(255, 107, 107, 0.1);
+            color: var(--admin);
+        }
+        
+        /* Interface principale */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 1rem 0;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+        }
+        
+        .navbar-brand i {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .admin-navbar {
+            background: linear-gradient(135deg, var(--admin), #ff5252);
+        }
+        
+        .admin-navbar .navbar-brand {
+            background: white;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .sidebar {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            padding: 2rem 1rem;
+            margin: 1rem;
+            height: calc(100vh - 100px);
+            position: sticky;
+            top: 100px;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-sidebar {
+            background: linear-gradient(135deg, #2d3748, #4a5568);
+        }
+        
+        .sidebar:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+        }
+        
+        .sidebar .nav-link {
+            color: var(--gray);
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+        
+        .admin-sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .admin-sidebar .nav-link:hover, .admin-sidebar .nav-link.active {
+            background: linear-gradient(135deg, var(--admin), #ff5252);
+            color: white;
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .main-content {
+            padding: 2rem;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card-header {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            border-radius: 20px 20px 0 0 !important;
+            font-weight: 600;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .admin-card .card-header {
+            background: linear-gradient(135deg, var(--admin), #ff5252);
+            color: white;
+        }
+        
+        .card-body {
+            padding: 2rem;
+        }
+        
+        .btn {
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+        }
+        
+        .btn-admin {
+            background: linear-gradient(135deg, var(--admin), #ff5252);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+        
+        .btn-admin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+        
+        .dashboard-card {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            border-radius: 20px;
+            color: white;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dashboard-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .dashboard-card:hover::before {
+            transform: translateY(0);
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .dashboard-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .dashboard-card .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .dashboard-card .label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .card-candidates {
+            background: linear-gradient(135deg, #4361ee, #3a56d4);
+        }
+        
+        .card-invoices {
+            background: linear-gradient(135deg, #7209b7, #5a0a94);
+        }
+        
+        .card-payments {
+            background: linear-gradient(135deg, #06d6a0, #05c290);
+        }
+        
+        .card-revenue {
+            background: linear-gradient(135deg, #ff9e00, #e68a00);
+        }
+        
+        .card-schools {
+            background: linear-gradient(135deg, #ef476f, #e63946);
+        }
+        
+        .card-pending {
+            background: linear-gradient(135deg, #ffd166, #ffb347);
+        }
+        
+        .card-messages {
+            background: linear-gradient(135deg, #118ab2, #06d6a0);
+        }
+        
+        .table {
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .table th {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+        }
+        
+        .admin-table th {
+            background: linear-gradient(135deg, var(--admin), #ff5252);
+        }
+        
+        .table td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        
+        .table tbody tr {
+            transition: all 0.3s ease;
+        }
+        
+        .table tbody tr:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+            transform: translateX(5px);
+        }
+        
+        .admin-table tbody tr:hover {
+            background-color: rgba(255, 107, 107, 0.05);
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .status-paid {
+            background: rgba(6, 214, 160, 0.2);
+            color: var(--success);
+        }
+        
+        .status-pending {
+            background: rgba(255, 209, 102, 0.2);
+            color: #e6a500;
+        }
+        
+        .status-overdue {
+            background: rgba(239, 71, 111, 0.2);
+            color: var(--danger);
+        }
+        
+        .status-validated {
+            background: rgba(6, 214, 160, 0.2);
+            color: var(--success);
+        }
+        
+        .status-waiting {
+            background: rgba(255, 209, 102, 0.2);
+            color: #e6a500;
+        }
+        
+        .emoji {
+            font-size: 1.2rem;
+            margin-right: 5px;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .content-section {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .admin-avatar {
+            background: linear-gradient(135deg, var(--admin), #ff5252);
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .quick-action-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .quick-action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .quick-action-card i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .admin-quick-action-card i {
+            background: linear-gradient(135deg, var(--admin), #ff5252);
+            -webkit-background-clip: text;
+        }
+        
+        .modal-content {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .modal-footer {
+            border-top: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            border-radius: 0 0 20px 20px;
+        }
+        
+        /* Styles pour la messagerie */
+        .messages-container {
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .messages-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .messages-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background: #f8f9fa;
+        }
+        
+        .message-item {
+            background: white;
+            border-radius: 15px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .message-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        
+        .message-item.unread {
+            border-left: 4px solid var(--primary);
+            background: rgba(67, 97, 238, 0.05);
+        }
+        
+        .message-sender {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .message-date {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+        }
+        
+        .message-content {
+            line-height: 1.5;
+        }
+        
+        .message-actions {
+            margin-top: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .compose-area {
+            border-top: 1px solid var(--border);
+            padding: 1.5rem;
+            background: white;
+        }
+        
+        .message-input {
+            border-radius: 12px;
+            resize: none;
+            min-height: 100px;
+        }
+        
+        /* Styles responsive pour la messagerie */
+        @media (max-width: 768px) {
+            .messages-container {
+                height: 500px;
+            }
+            
+            .message-actions {
+                flex-direction: column;
+            }
+            
+            .message-actions .btn {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .messages-container {
+                height: 400px;
+            }
+            
+            .messages-header h3 {
+                font-size: 1.2rem;
+            }
+            
+            .message-item {
+                padding: 0.75rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                height: auto;
+                margin: 0.5rem;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .dashboard-card .number {
+                font-size: 2rem;
+            }
+        }
+        
+        /* Pages cachées par défaut */
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .currency {
+            font-size: 0.8em;
+            margin-left: 2px;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            background: var(--success);
+            color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.error {
+            background: var(--danger);
+        }
+        
+        .notification.warning {
+            background: var(--warning);
+            color: var(--dark);
+        }
+        
+        /* Facture PDF */
+        .invoice-preview {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 1rem;
+        }
+        
+        .invoice-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .invoice-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .invoice-items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+        
+        .invoice-items th {
+            background: var(--primary);
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .invoice-items td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .invoice-totals {
+            width: 100%;
+            max-width: 300px;
+            margin-left: auto;
+        }
+        
+        .invoice-totals tr td {
+            padding: 8px 0;
+        }
+        
+        .invoice-totals tr:last-child {
+            font-weight: bold;
+            border-top: 2px solid var(--primary);
+        }
+        
+        .invoice-footer {
+            margin-top: 3rem;
+            text-align: center;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        .school-logo {
+            max-width: 150px;
+            max-height: 80px;
+            object-fit: contain;
+        }
+        
+        .logo-preview {
+            max-width: 100px;
+            max-height: 60px;
+            object-fit: contain;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 5px;
+        }
+        
+        .file-upload {
+            border: 2px dashed #ddd;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload:hover {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.05);
+        }
+        
+        .file-upload.dragover {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notification-text">Opération réussie</span>
+    </div>
+
+    <!-- Page de Connexion -->
+    <div id="login-page" class="page active">
+        <div class="auth-container">
+            <div class="auth-card fade-in">
+                <div class="auth-header">
+                    <h1><i class="fas fa-file-invoice-dollar me-2"></i>E-FACTURE</h1>
+                    <p>Connectez-vous à votre espace</p>
+                </div>
+                <div class="auth-body">
+                    <div class="user-type-selector">
+                        <div class="user-type-btn active" data-type="auto-ecole">
+                            <i class="fas fa-school me-1"></i> Auto-École
+                        </div>
+                        <div class="user-type-btn admin" data-type="admin">
+                            <i class="fas fa-user-shield me-1"></i> Administrateur
+                        </div>
+                    </div>
+                    <form id="login-form">
+                        <div class="mb-3">
+                            <label for="login-email" class="form-label">Email <span class="emoji">📧</span></label>
+                            <input type="email" class="form-control" id="login-email" placeholder="votre@auto-ecole.fr" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="login-password" class="form-label">Mot de passe <span class="emoji">🔒</span></label>
+                            <input type="password" class="form-control" id="login-password" placeholder="Votre mot de passe" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember-me">
+                            <label class="form-check-label" for="remember-me">Se souvenir de moi</label>
+                        </div>
+                        <button type="submit" class="btn-auth mb-3" id="login-btn">
+                            <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+                        </button>
+                        <div class="text-center">
+                            <a href="#" class="text-decoration-none">Mot de passe oublié ?</a>
+                        </div>
+                    </form>
+                </div>
+                <div class="auth-footer">
+                    <p class="mb-0">Nouvelle auto-école ? <a href="#" id="show-register" class="text-decoration-none fw-bold">Créez un compte</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page d'Inscription Auto-École -->
+    <div id="register-page" class="page">
+        <div class="auth-container">
+            <div class="auth-card fade-in">
+                <div class="auth-header">
+                    <h1><i class="fas fa-file-invoice-dollar me-2"></i>E-FACTURE</h1>
+                    <p>Inscrivez votre auto-école</p>
+                </div>
+                <div class="auth-body">
+                    <form id="register-form">
+                        <div class="mb-3">
+                            <label for="school-name" class="form-label">Nom de l'auto-école <span class="emoji">🏫</span></label>
+                            <input type="text" class="form-control" id="school-name" placeholder="Ex: Auto-École Excellence" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="owner-name" class="form-label">Nom du propriétaire <span class="emoji">👤</span></label>
+                            <input type="text" class="form-control" id="owner-name" placeholder="Votre nom complet" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="register-email" class="form-label">Email <span class="emoji">📧</span></label>
+                            <input type="email" class="form-control" id="register-email" placeholder="votre@auto-ecole.fr" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="register-phone" class="form-label">Téléphone <span class="emoji">📞</span></label>
+                            <input type="tel" class="form-control" id="register-phone" placeholder="01 23 45 67 89" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="school-address" class="form-label">Adresse <span class="emoji">📍</span></label>
+                            <textarea class="form-control" id="school-address" rows="2" placeholder="Adresse complète de l'auto-école"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="school-ifu" class="form-label">IFU (Identifiant Fiscal Unique) <span class="emoji">📋</span></label>
+                            <input type="text" class="form-control" id="school-ifu" placeholder="IFU123456789" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="register-password" class="form-label">Mot de passe <span class="emoji">🔒</span></label>
+                            <input type="password" class="form-control" id="register-password" placeholder="Créez un mot de passe sécurisé" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm-password" class="form-label">Confirmer le mot de passe <span class="emoji">✅</span></label>
+                            <input type="password" class="form-control" id="confirm-password" placeholder="Confirmez votre mot de passe" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="accept-terms" required>
+                            <label class="form-check-label" for="accept-terms">J'accepte les <a href="#" class="text-decoration-none">conditions d'utilisation</a></label>
+                        </div>
+                        <button type="submit" class="btn-auth mb-3">
+                            <i class="fas fa-user-plus me-2"></i>Créer mon compte
+                        </button>
+                    </form>
+                </div>
+                <div class="auth-footer">
+                    <p class="mb-0">Déjà inscrit ? <a href="#" id="show-login" class="text-decoration-none fw-bold">Connectez-vous</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interface Principale Auto-École -->
+    <div id="main-app" class="page">
+        <!-- Barre de navigation -->
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand" href="#">
+                    <i class="fas fa-file-invoice-dollar"></i>E-FACTURE
+                </a>
+                <div class="navbar-nav ms-auto">
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <div class="user-avatar me-2">
+                                <img id="navbar-logo" src="" alt="Logo" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; display: none;">
+                                <span id="navbar-initials" style="font-size: 0.8rem;">AE</span>
+                            </div>
+                            <span id="current-school-name">Auto-École Excellence</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#parametres"><i class="fas fa-cog me-2"></i>Paramètres</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="logout-btn"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid">
+            <div class="row">
+                <!-- Sidebar -->
+                <div class="col-md-2">
+                    <div class="sidebar">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#dashboard">
+                                    <i class="fas fa-tachometer-alt"></i> Tableau de bord
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#candidats">
+                                    <i class="fas fa-users"></i> Mes Candidats
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#factures">
+                                    <i class="fas fa-file-invoice-dollar"></i> Factures
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#paiements">
+                                    <i class="fas fa-credit-card"></i> Paiements
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#messages">
+                                    <i class="fas fa-envelope"></i> Messages
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#parametres">
+                                    <i class="fas fa-cog"></i> Paramètres
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Contenu principal -->
+                <div class="col-md-10">
+                    <div class="main-content">
+                        <!-- Tableau de bord Auto-École -->
+                        <div id="dashboard" class="content-section">
+                            <h2 class="mb-4">Tableau de Bord <span class="emoji">📊</span></h2>
+                            
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="dashboard-card card-candidates pulse">
+                                        <span class="icon">👥</span>
+                                        <div class="number">0</div>
+                                        <div class="label">Candidats Actifs</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="dashboard-card card-invoices floating">
+                                        <span class="icon">🧾</span>
+                                        <div class="number">0</div>
+                                        <div class="label">Factures Payées</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="dashboard-card card-payments pulse">
+                                        <span class="icon">⏳</span>
+                                        <div class="number">0</div>
+                                        <div class="label">Paiements En Attente</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="dashboard-card card-revenue floating">
+                                        <span class="icon">💰</span>
+                                        <div class="number">0 <span class="currency">FCFA</span></div>
+                                        <div class="label">Chiffre d'Affaires</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-4">
+                                <div class="col-md-8">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <span>Dernières Factures <span class="emoji">📋</span></span>
+                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addInvoiceModal">
+                                                <i class="fas fa-plus me-1"></i> Nouvelle Facture
+                                            </button>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>N° Facture</th>
+                                                            <th>Date</th>
+                                                            <th>Candidat</th>
+                                                            <th>Montant</th>
+                                                            <th>Statut Paiement</th>
+                                                            <th>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="invoices-table-body">
+                                                        <!-- Les données seront chargées ici par JavaScript -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            Actions Rapides <span class="emoji">⚡</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="quick-actions">
+                                                <div class="quick-action-card" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
+                                                    <i class="fas fa-user-plus"></i>
+                                                    <h6>Ajouter un Candidat</h6>
+                                                </div>
+                                                <div class="quick-action-card" data-bs-toggle="modal" data-bs-target="#addInvoiceModal">
+                                                    <i class="fas fa-file-invoice"></i>
+                                                    <h6>Créer une Facture</h6>
+                                                </div>
+                                                <div class="quick-action-card">
+                                                    <i class="fas fa-chart-bar"></i>
+                                                    <h6>Voir les Statistiques</h6>
+                                                </div>
+                                                <div class="quick-action-card" onclick="showSection('messages')">
+                                                    <i class="fas fa-envelope"></i>
+                                                    <h6>Voir Messages</h6>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card mt-4">
+                                        <div class="card-header">
+                                            Paiements en Attente <span class="emoji">⏰</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="pending-payments-list">
+                                                <!-- Les paiements en attente seront chargés ici -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Autres sections Auto-École (cachées par défaut) -->
+                        <div id="candidats" class="content-section d-none">
+                            <h2 class="mb-4">Gestion des Candidats <span class="emoji">👥</span></h2>
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span>Liste des Candidats</span>
+                                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
+                                        <i class="fas fa-plus me-1"></i> Ajouter un Candidat
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Nom</th>
+                                                    <th>Prénom</th>
+                                                    <th>Email</th>
+                                                    <th>Téléphone</th>
+                                                    <th>Date d'inscription</th>
+                                                    <th>Statut</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="candidates-table-body">
+                                                <!-- Les données seront chargées ici par JavaScript -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="factures" class="content-section d-none">
+                            <h2 class="mb-4">Gestion des Factures <span class="emoji">🧾</span></h2>
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span>Liste des Factures</span>
+                                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addInvoiceModal">
+                                        <i class="fas fa-plus me-1"></i> Créer une Facture
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>N° Facture</th>
+                                                    <th>Date</th>
+                                                    <th>Candidat</th>
+                                                    <th>Montant Total</th>
+                                                    <th>Montant Payé</th>
+                                                    <th>Reste à Payer</th>
+                                                    <th>Statut Paiement</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="all-invoices-table-body">
+                                                <!-- Les données seront chargées ici par JavaScript -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="paiements" class="content-section d-none">
+                            <h2 class="mb-4">Suivi des Paiements <span class="emoji">💳</span></h2>
+                            <div class="card">
+                                <div class="card-header">
+                                    Historique des Paiements
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Candidat</th>
+                                                    <th>Montant</th>
+                                                    <th>Méthode</th>
+                                                    <th>Facture</th>
+                                                    <th>Statut</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="payments-table-body">
+                                                <!-- Les données seront chargées ici par JavaScript -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="messages" class="content-section d-none">
+                            <h2 class="mb-4">Messagerie <span class="emoji">📧</span></h2>
+                            <div class="card">
+                                <div class="card-header">
+                                    <span>Messages reçus</span>
+                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#newMessageModal">
+                                        <i class="fas fa-plus me-1"></i> Nouveau Message
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="messages-container">
+                                        <div class="messages-header">
+                                            <h3 class="mb-0">Boîte de réception</h3>
+                                            <small>Messages de l'administrateur</small>
+                                        </div>
+                                        <div class="messages-list" id="school-messages-list">
+                                            <!-- Les messages seront chargés ici -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="parametres" class="content-section d-none">
+                            <h2 class="mb-4">Paramètres de l'Auto-École <span class="emoji">⚙️</span></h2>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            Informations de l'Auto-École
+                                        </div>
+                                        <div class="card-body">
+                                            <form id="school-settings-form">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Logo de l'auto-école</label>
+                                                    <div class="file-upload mb-3" id="logo-upload-area">
+                                                        <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                                                        <p class="mb-1">Glissez-déposez votre logo ici</p>
+                                                        <p class="text-muted small mb-2">ou</p>
+                                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('logo-upload').click()">
+                                                            Choisir un fichier
+                                                        </button>
+                                                        <input type="file" id="logo-upload" accept="image/*" style="display: none;">
+                                                    </div>
+                                                    <div id="logo-preview-container" class="text-center mb-3" style="display: none;">
+                                                        <img id="logo-preview" class="logo-preview" src="" alt="Aperçu du logo">
+                                                        <button type="button" class="btn btn-sm btn-danger mt-2" onclick="removeLogo()">
+                                                            <i class="fas fa-trash me-1"></i> Supprimer
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="settings-school-name" class="form-label">Nom de l'auto-école</label>
+                                                    <input type="text" class="form-control" id="settings-school-name" value="Auto-École Excellence" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="settings-owner-name" class="form-label">Nom du propriétaire</label>
+                                                    <input type="text" class="form-control" id="settings-owner-name" value="Jean Martin" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="settings-school-email" class="form-label">Email</label>
+                                                    <input type="email" class="form-control" id="settings-school-email" value="contact@excellence-auto.fr" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="settings-school-phone" class="form-label">Téléphone</label>
+                                                    <input type="text" class="form-control" id="settings-school-phone" value="01 23 45 67 89" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="settings-school-address" class="form-label">Adresse</label>
+                                                    <textarea class="form-control" id="settings-school-address" rows="3" required>123 Avenue de la République, 75011 Paris</textarea>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="settings-school-ifu" class="form-label">IFU (Identifiant Fiscal Unique)</label>
+                                                    <input type="text" class="form-control" id="settings-school-ifu" value="IFU123456789" required>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fas fa-save me-1"></i> Enregistrer les modifications
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            Paramètres de Facturation
+                                        </div>
+                                        <div class="card-body">
+                                            <form id="billing-settings-form">
+                                                <div class="mb-3">
+                                                    <label for="invoice-prefix" class="form-label">Préfixe des factures</label>
+                                                    <input type="text" class="form-control" id="invoice-prefix" value="INV" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="tax-rate" class="form-label">Taux de TVA (%)</label>
+                                                    <input type="number" class="form-control" id="tax-rate" value="18" step="0.1" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="currency" class="form-label">Devise</label>
+                                                    <select class="form-select" id="currency" required>
+                                                        <option selected>Franc CFA (FCFA)</option>
+                                                        <option>Euro (€)</option>
+                                                        <option>Dollar ($)</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3 form-check">
+                                                    <input type="checkbox" class="form-check-input" id="auto-invoice" checked>
+                                                    <label class="form-check-label" for="auto-invoice">Génération automatique des factures</label>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fas fa-save me-1"></i> Enregistrer les paramètres
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interface Administrateur -->
+    <div id="admin-app" class="page">
+        <!-- Barre de navigation Admin -->
+        <nav class="navbar navbar-expand-lg admin-navbar">
+            <div class="container">
+                <a class="navbar-brand" href="#">
+                    <i class="fas fa-file-invoice-dollar"></i>E-FACTURE <span class="admin-badge">ADMIN</span>
+                </a>
+                <div class="navbar-nav ms-auto">
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center text-white" href="#" id="navbarDropdownAdmin" role="button" data-bs-toggle="dropdown">
+                            <div class="user-avatar admin-avatar me-2">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <span>Administrateur</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#admin-parametres"><i class="fas fa-cog me-2"></i>Paramètres Admin</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="admin-logout-btn"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid">
+            <div class="row">
+                <!-- Sidebar Admin -->
+                <div class="col-md-2">
+                    <div class="sidebar admin-sidebar">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#admin-dashboard">
+                                    <i class="fas fa-tachometer-alt"></i> Tableau de bord
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#admin-auto-ecoles">
+                                    <i class="fas fa-school"></i> Auto-écoles
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#admin-candidats">
+                                    <i class="fas fa-users"></i> Tous les Candidats
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#admin-factures">
+                                    <i class="fas fa-file-invoice-dollar"></i> Toutes les Factures
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#admin-paiements">
+                                    <i class="fas fa-credit-card"></i> Paiements
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#admin-messages">
+                                    <i class="fas fa-envelope"></i> Messages
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#admin-parametres">
+                                    <i class="fas fa-cog"></i> Paramètres Système
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Contenu principal Admin -->
+                <div class="col-md-10">
+                    <div class="main-content">
+                        <!-- Tableau de bord Admin -->
+                        <div id="admin-dashboard" class="content-section">
+                            <h2 class="mb-4">Tableau de Bord Administrateur <span class="emoji">👑</span></h2>
+                            
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="dashboard-card card-schools pulse">
+                                        <span class="icon">🏫</span>
+                                        <div class="number">0</div>
+                                        <div class="label">Auto-Écoles</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="dashboard-card card-candidates floating">
+                                        <span class="icon">👥</span>
+                                        <div class="number">0</div>
+                                        <div class="label">Candidats Totaux</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="dashboard-card card-invoices pulse">
+                                        <span class="icon">🧾</span>
+                                        <div class="number">0</div>
+                                        <div class="label">Factures Générées</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="dashboard-card card-pending floating">
+                                        <span class="icon">⏳</span>
+                                        <div class="number">0</div>
+                                        <div class="label">En Attente</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-4">
+                                <div class="col-md-8">
+                                    <div class="card admin-card">
+                                        <div class="card-header">
+                                            <span>Auto-Écoles Récentes <span class="emoji">🏫</span></span>
+                                            <button class="btn btn-sm btn-admin" id="validate-all-btn">
+                                                <i class="fas fa-check me-1"></i> Valider Tous
+                                            </button>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover admin-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Auto-École</th>
+                                                            <th>Propriétaire</th>
+                                                            <th>Email</th>
+                                                            <th>Date Inscription</th>
+                                                            <th>Statut</th>
+                                                            <th>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="admin-schools-table-body">
+                                                        <!-- Les données seront chargées ici par JavaScript -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card admin-card">
+                                        <div class="card-header">
+                                            Actions Rapides <span class="emoji">⚡</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="quick-actions">
+                                                <div class="quick-action-card admin-quick-action-card" onclick="showSection('admin-auto-ecoles')">
+                                                    <i class="fas fa-school"></i>
+                                                    <h6>Gérer Auto-Écoles</h6>
+                                                </div>
+                                                <div class="quick-action-card admin-quick-action-card" onclick="showSection('admin-factures')">
+                                                    <i class="fas fa-file-invoice"></i>
+                                                    <h6>Voir Factures</h6>
+                                                </div>
+                                                <div class="quick-action-card admin-quick-action-card" onclick="showSection('admin-messages')">
+                                                    <i class="fas fa-envelope"></i>
+                                                    <h6>Messages</h6>
+                                                </div>
+                                                <div class="quick-action-card admin-quick-action-card" onclick="showSection('admin-parametres')">
+                                                    <i class="fas fa-cog"></i>
+                                                    <h6>Paramètres</h6>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card admin-card mt-4">
+                                        <div class="card-header">
+                                            Statistiques <span class="emoji">📈</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <small>Chiffre d'affaires total</small>
+                                                <h4 class="text-admin">0 <span class="currency">FCFA</span></h4>
+                                            </div>
+                                            <div class="mb-3">
+                                                <small>Factures payées ce mois</small>
+                                                <h4 class="text-success">0</h4>
+                                            </div>
+                                            <div>
+                                                <small>Auto-écoles en attente</small>
+                                                <h4 class="text-warning">0</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Autres sections Admin (cachées par défaut) -->
+                        <div id="admin-auto-ecoles" class="content-section d-none">
+                            <h2 class="mb-4">Gestion des Auto-Écoles <span class="emoji">🏫</span></h2>
+                            <div class="card admin-card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span>Liste des Auto-Écoles</span>
+                                    <button class="btn btn-sm btn-admin" id="validate-all-schools-btn">
+                                        <i class="fas fa-check me-1"></i> Valider Tous
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover admin-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Auto-École</th>
+                                                    <th>Propriétaire</th>
+                                                    <th>Email</th>
+                                                    <th>Téléphone</th>
+                                                    <th>Date Inscription</th>
+                                                    <th>Statut</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="all-schools-table-body">
+                                                <!-- Les données seront chargées ici par JavaScript -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="admin-candidats" class="content-section d-none">
+                            <h2 class="mb-4">Tous les Candidats <span class="emoji">👥</span></h2>
+                            <div class="card admin-card">
+                                <div class="card-header">
+                                    <span>Liste de Tous les Candidats</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover admin-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Nom</th>
+                                                    <th>Prénom</th>
+                                                    <th>Email</th>
+                                                    <th>Téléphone</th>
+                                                    <th>Auto-École</th>
+                                                    <th>Date Inscription</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="all-candidates-table-body">
+                                                <!-- Les données seront chargées ici par JavaScript -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="admin-factures" class="content-section d-none">
+                            <h2 class="mb-4">Toutes les Factures <span class="emoji">🧾</span></h2>
+                            <div class="card admin-card">
+                                <div class="card-header">
+                                    <span>Liste de Toutes les Factures</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover admin-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>N° Facture</th>
+                                                    <th>Date</th>
+                                                    <th>Auto-École</th>
+                                                    <th>Candidat</th>
+                                                    <th>Montant Total</th>
+                                                    <th>Montant Payé</th>
+                                                    <th>Reste à Payer</th>
+                                                    <th>Statut Paiement</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="admin-all-invoices-table-body">
+                                                <!-- Les données seront chargées ici par JavaScript -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="admin-paiements" class="content-section d-none">
+                            <h2 class="mb-4">Tous les Paiements <span class="emoji">💳</span></h2>
+                            <div class="card admin-card">
+                                <div class="card-header">
+                                    <span>Historique de Tous les Paiements</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover admin-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Auto-École</th>
+                                                    <th>Candidat</th>
+                                                    <th>Montant</th>
+                                                    <th>Méthode</th>
+                                                    <th>Facture</th>
+                                                    <th>Statut</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="admin-all-payments-table-body">
+                                                <!-- Les données seront chargées ici par JavaScript -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="admin-messages" class="content-section d-none">
+                            <h2 class="mb-4">Messagerie <span class="emoji">📧</span></h2>
+                            <div class="card admin-card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span>Messages aux Auto-Écoles</span>
+                                    <button class="btn btn-sm btn-admin" data-bs-toggle="modal" data-bs-target="#adminNewMessageModal">
+                                        <i class="fas fa-plus me-1"></i> Nouveau Message
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="messages-container">
+                                        <div class="messages-header">
+                                            <h3 class="mb-0">Messages envoyés</h3>
+                                            <small>Communication avec les auto-écoles</small>
+                                        </div>
+                                        <div class="messages-list" id="admin-messages-list">
+                                            <!-- Les messages seront chargés ici -->
+                                        </div>
+                                        <div class="compose-area">
+                                            <form id="admin-message-form">
+                                                <div class="mb-3">
+                                                    <label for="message-recipient" class="form-label">Destinataire</label>
+                                                    <select class="form-select" id="message-recipient" required>
+                                                        <option value="">Sélectionnez une auto-école</option>
+                                                        <option value="all">Toutes les auto-écoles</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="message-subject" class="form-label">Sujet</label>
+                                                    <input type="text" class="form-control" id="message-subject" placeholder="Sujet du message" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="message-content" class="form-label">Message</label>
+                                                    <textarea class="form-control message-input" id="message-content" placeholder="Tapez votre message ici..." required></textarea>
+                                                </div>
+                                                <button type="submit" class="btn btn-admin w-100">
+                                                    <i class="fas fa-paper-plane me-2"></i> Envoyer le message
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="admin-parametres" class="content-section d-none">
+                            <h2 class="mb-4">Paramètres Système <span class="emoji">⚙️</span></h2>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card admin-card">
+                                        <div class="card-header">
+                                            Paramètres Généraux
+                                        </div>
+                                        <div class="card-body">
+                                            <form id="admin-general-settings-form">
+                                                <div class="mb-3">
+                                                    <label for="admin-currency" class="form-label">Devise par défaut</label>
+                                                    <select class="form-select" id="admin-currency" required>
+                                                        <option selected>Franc CFA (FCFA)</option>
+                                                        <option>Euro (€)</option>
+                                                        <option>Dollar ($)</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="admin-tax-rate" class="form-label">Taux de TVA par défaut (%)</label>
+                                                    <input type="number" class="form-control" id="admin-tax-rate" value="18" step="0.1" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="admin-invoice-prefix" class="form-label">Préfixe des factures</label>
+                                                    <input type="text" class="form-control" id="admin-invoice-prefix" value="INV" required>
+                                                </div>
+                                                <button type="submit" class="btn btn-admin">
+                                                    <i class="fas fa-save me-1"></i> Enregistrer les paramètres
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card admin-card">
+                                        <div class="card-header">
+                                            Paramètres de Sécurité
+                                        </div>
+                                        <div class="card-body">
+                                            <form id="admin-security-settings-form">
+                                                <div class="mb-3">
+                                                    <label for="admin-session-timeout" class="form-label">Délai d'expiration de session (minutes)</label>
+                                                    <input type="number" class="form-control" id="admin-session-timeout" value="30" required>
+                                                </div>
+                                                <div class="mb-3 form-check">
+                                                    <input type="checkbox" class="form-check-input" id="admin-two-factor" checked>
+                                                    <label class="form-check-label" for="admin-two-factor">Activer l'authentification à deux facteurs</label>
+                                                </div>
+                                                <div class="mb-3 form-check">
+                                                    <input type="checkbox" class="form-check-input" id="admin-email-notifications" checked>
+                                                    <label class="form-check-label" for="admin-email-notifications">Activer les notifications par email</label>
+                                                    <div class="mb-3">
+                                                        <label for="admin-email" class="form-label">Email de notification</label>
+                                                        <input type="email" class="form-control" id="admin-email" value="admin@efacture.com" required>
+                                                    </div>
+                                                </div>
+                                                <button type="submit" class="btn btn-admin">
+                                                    <i class="fas fa-save me-1"></i> Enregistrer les paramètres
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal fade" id="addCandidateModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ajouter un Candidat <span class="emoji">👤</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-candidate-form">
+                        <div class="mb-3">
+                            <label for="candidateLastName" class="form-label">Nom</label>
+                            <input type="text" class="form-control" id="candidateLastName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="candidateFirstName" class="form-label">Prénom</label>
+                            <input type="text" class="form-control" id="candidateFirstName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="candidateEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="candidateEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="candidatePhone" class="form-label">Téléphone</label>
+                            <input type="text" class="form-control" id="candidatePhone" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="candidateAddress" class="form-label">Adresse</label>
+                            <textarea class="form-control" id="candidateAddress" rows="2"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="save-candidate-btn">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addInvoiceModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Créer une Facture <span class="emoji">🧾</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-invoice-form">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="invoiceCandidate" class="form-label">Candidat</label>
+                                    <select class="form-select" id="invoiceCandidate" required>
+                                        <option value="">Sélectionnez un candidat</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="invoiceDate" class="form-label">Date de facturation</label>
+                                    <input type="date" class="form-control" id="invoiceDate" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="invoiceDueDate" class="form-label">Date d'échéance</label>
+                                    <input type="date" class="form-control" id="invoiceDueDate" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="invoicePayment" class="form-label">Méthode de paiement</label>
+                                    <select class="form-select" id="invoicePayment" required>
+                                        <option value="">Sélectionnez une méthode</option>
+                                        <option>Virement bancaire</option>
+                                        <option>Carte bancaire</option>
+                                        <option>Espèces</option>
+                                        <option>Chèque</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="amountPaid" class="form-label">Montant déjà payé <span class="currency">(FCFA)</span></label>
+                                    <input type="number" class="form-control" id="amountPaid" value="0" step="0.01">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Montant restant à payer</label>
+                                    <div class="form-control" id="remainingAmountDisplay" style="background-color: #f8f9fa;">0 FCFA</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h6>Articles de la facture <span class="emoji">📦</span></h6>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Description</th>
+                                        <th>Quantité</th>
+                                        <th>Prix unitaire <span class="currency">(FCFA)</span></th>
+                                        <th>Total <span class="currency">(FCFA)</span></th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invoiceItems">
+                                    <tr>
+                                        <td>
+                                            <input type="text" class="form-control item-description" placeholder="Description de l'article" required>
+                                        </td>
+                                        <td>
+                                            <input type="number" class="form-control quantity" value="1" min="1" required>
+                                        </td>
+                                        <td>
+                                            <input type="number" class="form-control price" value="0" step="0.01" required>
+                                        </td>
+                                        <td class="item-total">0 FCFA</td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-danger remove-item"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="5" class="text-end">
+                                            <button type="button" class="btn btn-sm btn-success" id="addItem">
+                                                <i class="fas fa-plus me-1"></i> Ajouter un article
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-end"><strong>Sous-total:</strong></td>
+                                        <td colspan="2"><strong id="subtotal">0 FCFA</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-end"><strong>TVA (18%):</strong></td>
+                                        <td colspan="2"><strong id="taxAmount">0 FCFA</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                        <td colspan="2"><strong id="totalAmount">0 FCFA</strong></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="save-invoice-btn">Créer la facture</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de visualisation de facture -->
+    <div class="modal fade" id="viewInvoiceModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Facture <span id="invoice-number-title"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="invoice-preview-content">
+                        <!-- Le contenu de la facture sera généré ici -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <button type="button" class="btn btn-primary" id="download-invoice-btn">
+                        <i class="fas fa-download me-1"></i> Télécharger PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal d'édition de candidat -->
+    <div class="modal fade" id="editCandidateModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modifier le Candidat</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-candidate-form">
+                        <input type="hidden" id="edit-candidate-id">
+                        <div class="mb-3">
+                            <label for="edit-candidateLastName" class="form-label">Nom</label>
+                            <input type="text" class="form-control" id="edit-candidateLastName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-candidateFirstName" class="form-label">Prénom</label>
+                            <input type="text" class="form-control" id="edit-candidateFirstName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-candidateEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="edit-candidateEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-candidatePhone" class="form-label">Téléphone</label>
+                            <input type="text" class="form-control" id="edit-candidatePhone" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-candidateAddress" class="form-label">Adresse</label>
+                            <textarea class="form-control" id="edit-candidateAddress" rows="2"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="update-candidate-btn">Mettre à jour</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de visualisation de candidat -->
+    <div class="modal fade" id="viewCandidateModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Détails du Candidat</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="candidate-details-content">
+                        <!-- Les détails du candidat seront chargés ici -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // =============================================
+        // BASE DE DONNÉES SIMULÉE
+        // =============================================
+        
+        const database = {
+            // Auto-écoles
+            drivingSchools: JSON.parse(localStorage.getItem('drivingSchools')) || [],
+            
+            // Candidats
+            candidates: JSON.parse(localStorage.getItem('candidates')) || [],
+            
+            // Factures
+            invoices: JSON.parse(localStorage.getItem('invoices')) || [],
+            
+            // Paiements
+            payments: JSON.parse(localStorage.getItem('payments')) || [],
+            
+            // Messages
+            messages: JSON.parse(localStorage.getItem('messages')) || [],
+            
+            // Sauvegarder les données
+            save: function() {
+                localStorage.setItem('drivingSchools', JSON.stringify(this.drivingSchools));
+                localStorage.setItem('candidates', JSON.stringify(this.candidates));
+                localStorage.setItem('invoices', JSON.stringify(this.invoices));
+                localStorage.setItem('payments', JSON.stringify(this.payments));
+                localStorage.setItem('messages', JSON.stringify(this.messages));
+            },
+            
+            // Générer un ID unique
+            generateId: function() {
+                return Date.now().toString(36) + Math.random().toString(36).substr(2);
+            }
+        };
+
+        // =============================================
+        // FONCTIONS UTILITAIRES
+        // =============================================
+        
+        // Afficher une notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notification-text');
+            
+            notificationText.textContent = message;
+            notification.className = 'notification';
+            
+            if (type === 'error') {
+                notification.classList.add('error');
+                notification.querySelector('i').className = 'fas fa-exclamation-circle';
+            } else if (type === 'warning') {
+                notification.classList.add('warning');
+                notification.querySelector('i').className = 'fas fa-exclamation-triangle';
+            } else {
+                notification.querySelector('i').className = 'fas fa-check-circle';
+            }
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Formater les montants en CFA
+        function formatCFA(amount) {
+            return new Intl.NumberFormat('fr-FR', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount) + ' FCFA';
+        }
+        
+        // Formater les dates
+        function formatDate(dateString) {
+            const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+            return new Date(dateString).toLocaleDateString('fr-FR', options);
+        }
+        
+        // Formater les dates avec heure
+        function formatDateTime(dateString) {
+            const options = { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            return new Date(dateString).toLocaleDateString('fr-FR', options);
+        }
+        
+        // Fonction pour afficher une section
+        function showSection(sectionId) {
+            document.querySelectorAll('#admin-app .content-section').forEach(section => {
+                section.classList.add('d-none');
+            });
+            document.getElementById(sectionId).classList.remove('d-none');
+            
+            // Mettre à jour la sidebar active
+            document.querySelectorAll('#admin-app .sidebar .nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + sectionId) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Recharger les données si nécessaire
+            if (sectionId === 'admin-messages') {
+                loadAdminMessages();
+                loadRecipients();
+            } else if (sectionId === 'messages') {
+                loadSchoolMessages();
+            } else if (sectionId !== 'admin-dashboard') {
+                loadData();
+            }
+        }
+        
+        // Valider une auto-école
+        function validateSchool(schoolId) {
+            const school = database.drivingSchools.find(s => s.id === schoolId);
+            if (school) {
+                school.status = 'validated';
+                school.validatedAt = new Date().toISOString();
+                database.save();
+                loadData();
+                
+                showNotification(`L'auto-école "${school.name}" a été validée avec succès !`);
+            }
+        }
+
+        // Mettre en attente une auto-école
+        function setSchoolPending(schoolId) {
+            const school = database.drivingSchools.find(s => s.id === schoolId);
+            if (school) {
+                school.status = 'pending';
+                delete school.validatedAt;
+                database.save();
+                loadData();
+                
+                showNotification(`L'auto-école "${school.name}" a été mise en attente !`);
+            }
+        }
+        
+        // Valider toutes les auto-écoles en attente
+        function validateAllPendingSchools() {
+            const pendingSchools = database.drivingSchools.filter(s => s.status === 'pending');
+            if (pendingSchools.length === 0) {
+                showNotification('Aucune auto-école en attente de validation.', 'warning');
+                return;
+            }
+            
+            if (confirm(`Voulez-vous vraiment valider ${pendingSchools.length} auto-école(s) en attente ?`)) {
+                pendingSchools.forEach(school => {
+                    school.status = 'validated';
+                    school.validatedAt = new Date().toISOString();
+                });
+                database.save();
+                loadData();
+                showNotification(`${pendingSchools.length} auto-école(s) ont été validées avec succès !`);
+            }
+        }
+        
+        // Mettre à jour les statistiques
+        function updateStatistics() {
+            // Statistiques auto-école
+            const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
+            const schoolCandidates = database.candidates.filter(c => c.schoolId === currentSchoolId).length;
+            const schoolInvoices = database.invoices.filter(i => i.schoolId === currentSchoolId);
+            const paidInvoices = schoolInvoices.filter(i => i.status === 'paid').length;
+            const pendingInvoices = schoolInvoices.filter(i => i.status === 'pending').length;
+            const totalRevenue = schoolInvoices
+                .filter(i => i.status === 'paid')
+                .reduce((sum, invoice) => sum + invoice.totalAmount, 0);
+            
+            // Mettre à jour l'interface auto-école
+            document.querySelector('#dashboard .card-candidates .number').textContent = schoolCandidates;
+            document.querySelector('#dashboard .card-invoices .number').textContent = paidInvoices;
+            document.querySelector('#dashboard .card-payments .number').textContent = pendingInvoices;
+            document.querySelector('#dashboard .card-revenue .number').innerHTML = `${formatCFA(totalRevenue)}`;
+            
+            // Statistiques admin
+            const totalSchools = database.drivingSchools.length;
+            const totalCandidates = database.candidates.length;
+            const totalInvoices = database.invoices.length;
+            const pendingSchools = database.drivingSchools.filter(s => s.status === 'pending').length;
+            const adminTotalRevenue = database.invoices
+                .filter(i => i.status === 'paid')
+                .reduce((sum, invoice) => sum + invoice.totalAmount, 0);
+            
+            // Mettre à jour l'interface admin
+            document.querySelector('#admin-dashboard .card-schools .number').textContent = totalSchools;
+            document.querySelector('#admin-dashboard .card-candidates .number').textContent = totalCandidates;
+            document.querySelector('#admin-dashboard .card-invoices .number').textContent = totalInvoices;
+            document.querySelector('#admin-dashboard .card-pending .number').textContent = pendingSchools;
+            document.querySelector('#admin-dashboard .text-admin').innerHTML = `${formatCFA(adminTotalRevenue)}`;
+            document.querySelector('#admin-dashboard .text-success').textContent = database.invoices.filter(i => {
+                const invoiceDate = new Date(i.date);
+                const currentMonth = new Date().getMonth();
+                const currentYear = new Date().getFullYear();
+                return i.status === 'paid' && 
+                       invoiceDate.getMonth() === currentMonth && 
+                       invoiceDate.getFullYear() === currentYear;
+            }).length;
+            document.querySelector('#admin-dashboard .text-warning').textContent = pendingSchools;
+        }
+        
+        // Charger les destinataires pour les messages
+        function loadRecipients() {
+            const recipientSelect = document.getElementById('message-recipient');
+            recipientSelect.innerHTML = '<option value="">Sélectionnez une auto-école</option><option value="all">Toutes les auto-écoles</option>';
+            
+            database.drivingSchools.forEach(school => {
+                if (school.status === 'validated') {
+                    const option = document.createElement('option');
+                    option.value = school.id;
+                    option.textContent = `${school.name} (${school.email})`;
+                    recipientSelect.appendChild(option);
+                }
+            });
+        }
+        
+        // Charger les messages pour l'admin
+        function loadAdminMessages() {
+            const adminMessagesList = document.getElementById('admin-messages-list');
+            const adminMessages = database.messages.filter(m => m.sender === 'admin');
+            
+            if (adminMessages.length === 0) {
+                adminMessagesList.innerHTML = `
+                    <div class="text-center py-5">
+                        <div class="emoji mb-2" style="font-size: 3rem;">📭</div>
+                        <h5>Aucun message envoyé</h5>
+                        <p class="text-muted">Envoyez votre premier message aux auto-écoles</p>
+                    </div>
+                `;
+            } else {
+                adminMessagesList.innerHTML = adminMessages.map(message => {
+                    const recipientText = message.recipient === 'all' 
+                        ? 'À toutes les auto-écoles' 
+                        : `À: ${database.drivingSchools.find(s => s.id === message.recipient)?.name || 'Auto-école inconnue'}`;
+                    
+                    return `
+                        <div class="message-item">
+                            <div class="message-sender">De: Administrateur</div>
+                            <div class="message-recipient">${recipientText}</div>
+                            <div class="message-date">${formatDateTime(message.date)}</div>
+                            <div class="message-subject"><strong>${message.subject}</strong></div>
+                            <div class="message-content">${message.content}</div>
+                            <div class="message-actions">
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${message.id}')">
+                                    <i class="fas fa-trash me-1"></i> Supprimer
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+        
+        // Charger les messages pour l'auto-école
+        function loadSchoolMessages() {
+            const schoolMessagesList = document.getElementById('school-messages-list');
+            const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
+            
+            // Messages spécifiques à cette auto-école + messages à toutes les auto-écoles
+            const schoolMessages = database.messages.filter(m => 
+                m.sender === 'admin' && 
+                (m.recipient === 'all' || m.recipient === currentSchoolId)
+            );
+            
+            if (schoolMessages.length === 0) {
+                schoolMessagesList.innerHTML = `
+                    <div class="text-center py-5">
+                        <div class="emoji mb-2" style="font-size: 3rem;">📭</div>
+                        <h5>Aucun message</h5>
+                        <p class="text-muted">Vous n'avez aucun message pour le moment</p>
+                    </div>
+                `;
+            } else {
+                schoolMessagesList.innerHTML = schoolMessages.map(message => {
+                    const isUnread = !message.readBy || !message.readBy.includes(currentSchoolId);
+                    
+                    return `
+                        <div class="message-item ${isUnread ? 'unread' : ''}">
+                            <div class="message-sender">De: Administrateur</div>
+                            <div class="message-date">${formatDateTime(message.date)}</div>
+                            <div class="message-subject"><strong>${message.subject}</strong></div>
+                            <div class="message-content">${message.content}</div>
+                            <div class="message-actions">
+                                ${isUnread ? `
+                                <button class="btn btn-sm btn-outline-success" onclick="markAsRead('${message.id}')">
+                                    <i class="fas fa-check me-1"></i> Marquer comme lu
+                                </button>
+                                ` : ''}
+                                <button class="btn btn-sm btn-outline-primary" onclick="replyToMessage('${message.id}')">
+                                    <i class="fas fa-reply me-1"></i> Répondre
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+        
+        // Marquer un message comme lu
+        function markAsRead(messageId) {
+            const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
+            const message = database.messages.find(m => m.id === messageId);
+            
+            if (message) {
+                if (!message.readBy) {
+                    message.readBy = [];
+                }
+                if (!message.readBy.includes(currentSchoolId)) {
+                    message.readBy.push(currentSchoolId);
+                    database.save();
+                    loadSchoolMessages();
+                    showNotification('Message marqué comme lu');
+                }
+            }
+        }
+        
+        // Supprimer un message
+        function deleteMessage(messageId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce message ?')) {
+                database.messages = database.messages.filter(m => m.id !== messageId);
+                database.save();
+                loadAdminMessages();
+                showNotification('Message supprimé avec succès');
+            }
+        }
+        
+        // Répondre à un message
+        function replyToMessage(messageId) {
+            const message = database.messages.find(m => m.id === messageId);
+            if (message) {
+                // Pour l'instant, on ouvre simplement le client email par défaut
+                const subject = `RE: ${message.subject}`;
+                const body = `\n\n--- Message original ---\n${message.content}`;
+                window.location.href = `mailto:admin@efacture.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            }
+        }
+        
+        // Envoyer un message (admin vers auto-écoles)
+        function sendAdminMessage(recipient, subject, content) {
+            const messageData = {
+                id: database.generateId(),
+                sender: 'admin',
+                recipient: recipient,
+                subject: subject,
+                content: content,
+                date: new Date().toISOString(),
+                readBy: []
+            };
+            
+            database.messages.push(messageData);
+            database.save();
+            
+            // Si le message est envoyé à toutes les auto-écoles, on le marque comme lu par l'admin
+            if (recipient === 'all') {
+                messageData.readBy.push('admin');
+            }
+            
+            showNotification('Message envoyé avec succès !');
+            loadAdminMessages();
+        }
+        
+        // Charger les données dans les tableaux
+        function loadData() {
+            const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
+            const currentSchool = database.drivingSchools.find(s => s.id === currentSchoolId);
+            
+            // Mettre à jour le logo dans la navbar
+            updateNavbarLogo(currentSchool);
+            
+            // Charger les auto-écoles pour l'admin
+            const adminSchoolsTableBody = document.getElementById('admin-schools-table-body');
+            const allSchoolsTableBody = document.getElementById('all-schools-table-body');
+            
+            if (database.drivingSchools.length === 0) {
+                adminSchoolsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="emoji mb-2" style="font-size: 3rem;">🏫</div>
+                            <h5>Aucune auto-école inscrite</h5>
+                            <p class="text-muted">Les auto-écoles apparaîtront ici après inscription</p>
+                        </td>
+                    </tr>
+                `;
+                allSchoolsTableBody.innerHTML = adminSchoolsTableBody.innerHTML;
+            } else {
+                const schoolsHTML = database.drivingSchools.map(school => {
+                    const statusClass = school.status === 'validated' ? 'status-validated' : 'status-waiting';
+                    const statusText = school.status === 'validated' ? 'Validé' : 'En attente';
+                    
+                    return `
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="user-avatar me-2" style="width: 30px; height: 30px; font-size: 0.8rem;">${school.name.substring(0, 2).toUpperCase()}</div>
+                                    ${school.name}
+                                </div>
+                            </td>
+                            <td>${school.owner}</td>
+                            <td>${school.email}</td>
+                            <td>${school.phone || 'Non renseigné'}</td>
+                            <td>${formatDate(school.registrationDate)}</td>
+                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-admin" onclick="viewSchoolDetails('${school.id}')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                ${school.status === 'pending' ? `
+                                <button class="btn btn-sm btn-success" onclick="validateSchool('${school.id}')">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                ` : `
+                                <button class="btn btn-sm btn-warning" onclick="setSchoolPending('${school.id}')">
+                                    <i class="fas fa-clock"></i>
+                                </button>
+                                `}
+                                <button class="btn btn-sm btn-danger" onclick="deleteSchool('${school.id}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                adminSchoolsTableBody.innerHTML = schoolsHTML;
+                allSchoolsTableBody.innerHTML = schoolsHTML;
+            }
+            
+            // Charger les candidats pour l'auto-école
+            const candidatesTableBody = document.getElementById('candidates-table-body');
+            const schoolCandidates = database.candidates.filter(c => c.schoolId === currentSchoolId);
+            
+            if (schoolCandidates.length === 0) {
+                candidatesTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <div class="emoji mb-2" style="font-size: 3rem;">👥</div>
+                            <h5>Aucun candidat pour le moment</h5>
+                            <p class="text-muted">Ajoutez votre premier candidat pour commencer</p>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                candidatesTableBody.innerHTML = schoolCandidates.map(candidate => `
+                    <tr>
+                        <td>${candidate.lastName}</td>
+                        <td>${candidate.firstName}</td>
+                        <td>${candidate.email}</td>
+                        <td>${candidate.phone}</td>
+                        <td>${formatDate(candidate.registrationDate)}</td>
+                        <td><span class="status-badge status-validated">Actif</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="viewCandidate('${candidate.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-primary" onclick="editCandidate('${candidate.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-success" onclick="createInvoiceForCandidate('${candidate.id}')">
+                                <i class="fas fa-file-invoice"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteCandidate('${candidate.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+            
+            // Charger les factures pour l'auto-école
+            const invoicesTableBody = document.getElementById('invoices-table-body');
+            const allInvoicesTableBody = document.getElementById('all-invoices-table-body');
+            const schoolInvoices = database.invoices.filter(i => i.schoolId === currentSchoolId);
+            
+            if (schoolInvoices.length === 0) {
+                invoicesTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="emoji mb-2" style="font-size: 3rem;">📭</div>
+                            <h5>Aucune facture pour le moment</h5>
+                            <p class="text-muted">Créez votre première facture pour commencer</p>
+                            <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addInvoiceModal">
+                                <i class="fas fa-plus me-1"></i> Créer une Facture
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                allInvoicesTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <div class="emoji mb-2" style="font-size: 3rem;">📭</div>
+                            <h5>Aucune facture pour le moment</h5>
+                            <p class="text-muted">Créez votre première facture pour commencer</p>
+                            <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addInvoiceModal">
+                                <i class="fas fa-plus me-1"></i> Créer une Facture
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                const invoicesHTML = schoolInvoices.map(invoice => {
+                    const candidate = database.candidates.find(c => c.id === invoice.candidateId) || {};
+                    const statusClass = invoice.status === 'paid' ? 'status-paid' : 
+                                      invoice.status === 'pending' ? 'status-pending' : 'status-overdue';
+                    const statusText = invoice.status === 'paid' ? 'Payé' : 
+                                     invoice.status === 'pending' ? 'En attente' : 'En retard';
+                    
+                    const amountPaid = invoice.amountPaid || 0;
+                    const remainingAmount = invoice.totalAmount - amountPaid;
+                    
+                    return `
+                        <tr>
+                            <td>${invoice.number}</td>
+                            <td>${formatDate(invoice.date)}</td>
+                            <td>${candidate.firstName} ${candidate.lastName}</td>
+                            <td>${formatCFA(invoice.totalAmount)}</td>
+                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-info" onclick="viewInvoice('${invoice.id}')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-success" onclick="downloadInvoicePDF('${invoice.id}')">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                const allInvoicesHTML = schoolInvoices.map(invoice => {
+                    const candidate = database.candidates.find(c => c.id === invoice.candidateId) || {};
+                    const statusClass = invoice.status === 'paid' ? 'status-paid' : 
+                                      invoice.status === 'pending' ? 'status-pending' : 'status-overdue';
+                    const statusText = invoice.status === 'paid' ? 'Payé' : 
+                                     invoice.status === 'pending' ? 'En attente' : 'En retard';
+                    
+                    const amountPaid = invoice.amountPaid || 0;
+                    const remainingAmount = invoice.totalAmount - amountPaid;
+                    
+                    return `
+                        <tr>
+                            <td>${invoice.number}</td>
+                            <td>${formatDate(invoice.date)}</td>
+                            <td>${candidate.firstName} ${candidate.lastName}</td>
+                            <td>${formatCFA(invoice.totalAmount)}</td>
+                            <td>${formatCFA(amountPaid)}</td>
+                            <td>${formatCFA(remainingAmount)}</td>
+                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-info" onclick="viewInvoice('${invoice.id}')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-success" onclick="downloadInvoicePDF('${invoice.id}')">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                invoicesTableBody.innerHTML = invoicesHTML;
+                allInvoicesTableBody.innerHTML = allInvoicesHTML;
+            }
+            
+            // Charger les paiements en attente
+            const pendingPaymentsList = document.getElementById('pending-payments-list');
+            const pendingInvoices = schoolInvoices.filter(i => i.status === 'pending');
+            
+            if (pendingInvoices.length === 0) {
+                pendingPaymentsList.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="emoji mb-2" style="font-size: 2rem;">✅</div>
+                        <p class="text-muted mb-0">Aucun paiement en attente</p>
+                    </div>
+                `;
+            } else {
+                pendingPaymentsList.innerHTML = pendingInvoices.map(invoice => {
+                    const candidate = database.candidates.find(c => c.id === invoice.candidateId) || {};
+                    const amountPaid = invoice.amountPaid || 0;
+                    const remainingAmount = invoice.totalAmount - amountPaid;
+                    
+                    return `
+                        <div class="d-flex justify-content-between align-items-center mb-3 p-3 border rounded">
+                            <div>
+                                <h6 class="mb-1">${candidate.firstName} ${candidate.lastName}</h6>
+                                <small class="text-muted">${invoice.number} - ${formatCFA(remainingAmount)} restant</small>
+                            </div>
+                            <button class="btn btn-sm btn-success" onclick="markAsPaid('${invoice.id}')">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            // Mettre à jour les statistiques
+            updateStatistics();
+        }
+        
+        // Voir les détails d'une auto-école
+        function viewSchoolDetails(schoolId) {
+            const school = database.drivingSchools.find(s => s.id === schoolId);
+            if (school) {
+                const details = `
+                    Nom: ${school.name}
+                    Propriétaire: ${school.owner}
+                    Email: ${school.email}
+                    Téléphone: ${school.phone || 'Non renseigné'}
+                    Adresse: ${school.address || 'Non renseignée'}
+                    IFU: ${school.ifu || 'Non renseigné'}
+                    Date d'inscription: ${formatDate(school.registrationDate)}
+                    Statut: ${school.status === 'validated' ? 'Validé' : 'En attente'}
+                    ${school.validatedAt ? `Validé le: ${formatDate(school.validatedAt)}` : ''}
+                `;
+                alert(details);
+            }
+        }
+        
+        // Supprimer une auto-école
+        function deleteSchool(schoolId) {
+            const school = database.drivingSchools.find(s => s.id === schoolId);
+            if (school && confirm(`Êtes-vous sûr de vouloir supprimer l'auto-école "${school.name}" ?`)) {
+                database.drivingSchools = database.drivingSchools.filter(s => s.id !== schoolId);
+                database.save();
+                loadData();
+                showNotification('Auto-école supprimée avec succès !');
+            }
+        }
+        
+        // Charger les candidats dans le sélecteur de facture
+        function loadCandidatesForInvoice() {
+            const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
+            const schoolCandidates = database.candidates.filter(c => c.schoolId === currentSchoolId);
+            const candidateSelect = document.getElementById('invoiceCandidate');
+            
+            candidateSelect.innerHTML = '<option value="">Sélectionnez un candidat</option>';
+            
+            schoolCandidates.forEach(candidate => {
+                const option = document.createElement('option');
+                option.value = candidate.id;
+                option.textContent = `${candidate.firstName} ${candidate.lastName}`;
+                candidateSelect.appendChild(option);
+            });
+        }
+        
+        // Visualiser une facture
+        function viewInvoice(invoiceId) {
+            const invoice = database.invoices.find(i => i.id === invoiceId);
+            if (!invoice) return;
+            
+            const candidate = database.candidates.find(c => c.id === invoice.candidateId) || {};
+            const school = database.drivingSchools.find(s => s.id === invoice.schoolId) || {};
+            const amountPaid = invoice.amountPaid || 0;
+            const remainingAmount = invoice.totalAmount - amountPaid;
+            
+            document.getElementById('invoice-number-title').textContent = invoice.number;
+            
+            const invoicePreview = document.getElementById('invoice-preview-content');
+            invoicePreview.innerHTML = `
+                <div class="invoice-preview" id="invoice-to-print">
+                    <div class="invoice-header">
+                        <div>
+                            <h1 class="invoice-title">FACTURE</h1>
+                            <p class="mb-0"><strong>N° ${invoice.number}</strong></p>
+                            <p class="mb-0">Date: ${formatDate(invoice.date)}</p>
+                            <p class="mb-0">Échéance: ${formatDate(invoice.dueDate)}</p>
+                        </div>
+                        <div class="text-end">
+                            ${school.logo ? `<img src="${school.logo}" alt="Logo ${school.name}" class="school-logo mb-2">` : ''}
+                            <h4>${school.name || 'Auto-École'}</h4>
+                            <p class="mb-0">${school.address || ''}</p>
+                            <p class="mb-0">${school.phone || ''}</p>
+                            <p class="mb-0">${school.email || ''}</p>
+                            <p class="mb-0">IFU: ${school.ifu || ''}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="invoice-details">
+                        <div>
+                            <h5>Facturé à:</h5>
+                            <p class="mb-1"><strong>${candidate.firstName} ${candidate.lastName}</strong></p>
+                            <p class="mb-1">${candidate.email || ''}</p>
+                            <p class="mb-1">${candidate.phone || ''}</p>
+                            <p class="mb-0">${candidate.address || ''}</p>
+                        </div>
+                        <div>
+                            <h5>Détails de paiement:</h5>
+                            <p class="mb-1"><strong>Méthode:</strong> ${invoice.paymentMethod}</p>
+                            <p class="mb-1"><strong>Statut:</strong> ${invoice.status === 'paid' ? 'Payé' : 'En attente'}</p>
+                            <p class="mb-1"><strong>Montant à payer:</strong> ${formatCFA(invoice.totalAmount)}</p>
+                            <p class="mb-0"><strong>Reste à payer:</strong> ${formatCFA(remainingAmount)}</p>
+                        </div>
+                    </div>
+                    
+                    <table class="invoice-items">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Prix unitaire</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${invoice.items.map(item => `
+                                <tr>
+                                    <td>${item.description}</td>
+                                    <td>${formatCFA(item.price)}</td>
+                                    <td>${formatCFA(item.total)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <table class="invoice-totals">
+                        <tr>
+                            <td>Sous-total:</td>
+                            <td class="text-end">${formatCFA(invoice.subtotal)}</td>
+                        </tr>
+                        <tr>
+                            <td>TVA (18%):</td>
+                            <td class="text-end">${formatCFA(invoice.taxAmount)}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total:</strong></td>
+                            <td class="text-end"><strong>${formatCFA(invoice.totalAmount)}</strong></td>
+                        </tr>
+                    </table>
+                    
+                    <div class="invoice-footer">
+                        <p>Merci de votre confiance !</p>
+                        <p>Pour toute question concernant cette facture, veuillez contacter ${school.name || 'notre auto-école'}.</p>
+                    </div>
+                </div>
+            `;
+            
+            // Stocker l'ID de la facture pour le téléchargement
+            document.getElementById('download-invoice-btn').setAttribute('data-invoice-id', invoiceId);
+            
+            const modal = new bootstrap.Modal(document.getElementById('viewInvoiceModal'));
+            modal.show();
+        }
+        
+        // Télécharger une facture en PDF
+        function downloadInvoicePDF(invoiceId) {
+            const invoice = database.invoices.find(i => i.id === invoiceId);
+            if (!invoice) return;
+            
+            showNotification(`Génération du PDF pour la facture ${invoice.number}...`, 'warning');
+            
+            // Utiliser html2canvas pour capturer le contenu
+            const element = document.getElementById('invoice-to-print');
+            
+            html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                logging: false
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgWidth = 210;
+                const pageHeight = 295;
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+                
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+                
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                
+                pdf.save(`facture-${invoice.number}.pdf`);
+                showNotification(`Facture ${invoice.number} téléchargée en PDF avec succès !`);
+            }).catch(error => {
+                console.error('Erreur lors de la génération du PDF:', error);
+                showNotification('Erreur lors de la génération du PDF', 'error');
+            });
+        }
+        
+        // Marquer une facture comme payée
+        function markAsPaid(invoiceId) {
+            const invoice = database.invoices.find(i => i.id === invoiceId);
+            if (invoice) {
+                invoice.status = 'paid';
+                invoice.amountPaid = invoice.totalAmount;
+                database.save();
+                loadData();
+                showNotification(`Facture ${invoice.number} marquée comme payée !`);
+            }
+        }
+        
+        // Visualiser un candidat
+        function viewCandidate(candidateId) {
+            const candidate = database.candidates.find(c => c.id === candidateId);
+            if (!candidate) return;
+            
+            const candidateDetails = document.getElementById('candidate-details-content');
+            candidateDetails.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Nom:</strong> ${candidate.lastName}</p>
+                        <p><strong>Prénom:</strong> ${candidate.firstName}</p>
+                        <p><strong>Email:</strong> ${candidate.email}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Téléphone:</strong> ${candidate.phone}</p>
+                        <p><strong>Date d'inscription:</strong> ${formatDate(candidate.registrationDate)}</p>
+                        <p><strong>Adresse:</strong> ${candidate.address || 'Non renseignée'}</p>
+                    </div>
+                </div>
+            `;
+            
+            const modal = new bootstrap.Modal(document.getElementById('viewCandidateModal'));
+            modal.show();
+        }
+        
+        // Éditer un candidat
+        function editCandidate(candidateId) {
+            const candidate = database.candidates.find(c => c.id === candidateId);
+            if (!candidate) return;
+            
+            document.getElementById('edit-candidate-id').value = candidate.id;
+            document.getElementById('edit-candidateLastName').value = candidate.lastName;
+            document.getElementById('edit-candidateFirstName').value = candidate.firstName;
+            document.getElementById('edit-candidateEmail').value = candidate.email;
+            document.getElementById('edit-candidatePhone').value = candidate.phone;
+            document.getElementById('edit-candidateAddress').value = candidate.address || '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('editCandidateModal'));
+            modal.show();
+        }
+        
+        // Supprimer un candidat
+        function deleteCandidate(candidateId) {
+            const candidate = database.candidates.find(c => c.id === candidateId);
+            if (candidate && confirm(`Êtes-vous sûr de vouloir supprimer le candidat ${candidate.firstName} ${candidate.lastName} ?`)) {
+                database.candidates = database.candidates.filter(c => c.id !== candidateId);
+                database.save();
+                loadData();
+                showNotification('Candidat supprimé avec succès !');
+            }
+        }
+        
+        // Créer une facture pour un candidat spécifique
+        function createInvoiceForCandidate(candidateId) {
+            const candidate = database.candidates.find(c => c.id === candidateId);
+            if (!candidate) return;
+            
+            // Pré-remplir le formulaire de facture
+            document.getElementById('invoiceCandidate').value = candidateId;
+            
+            // Ouvrir le modal de création de facture
+            const modal = new bootstrap.Modal(document.getElementById('addInvoiceModal'));
+            modal.show();
+        }
+        
+        // Mettre à jour le logo dans la navbar
+        function updateNavbarLogo(school) {
+            const navbarLogo = document.getElementById('navbar-logo');
+            const navbarInitials = document.getElementById('navbar-initials');
+            
+            if (school && school.logo) {
+                navbarLogo.src = school.logo;
+                navbarLogo.style.display = 'block';
+                navbarInitials.style.display = 'none';
+            } else {
+                navbarLogo.style.display = 'none';
+                navbarInitials.style.display = 'block';
+                navbarInitials.textContent = school ? school.name.substring(0, 2).toUpperCase() : 'AE';
+            }
+        }
+        
+        // Gestion du logo
+        function handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.startsWith('image/')) {
+                showNotification('Veuillez sélectionner une image valide', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const logoPreview = document.getElementById('logo-preview');
+                const logoPreviewContainer = document.getElementById('logo-preview-container');
+                
+                logoPreview.src = e.target.result;
+                logoPreviewContainer.style.display = 'block';
+                
+                // Sauvegarder le logo temporairement
+                const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
+                const school = database.drivingSchools.find(s => s.id === currentSchoolId);
+                if (school) {
+                    school.logo = e.target.result;
+                    database.save();
+                    updateNavbarLogo(school);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function removeLogo() {
+            const logoPreviewContainer = document.getElementById('logo-preview-container');
+            const logoUpload = document.getElementById('logo-upload');
+            
+            logoPreviewContainer.style.display = 'none';
+            logoUpload.value = '';
+            
+            // Supprimer le logo
+            const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
+            const school = database.drivingSchools.find(s => s.id === currentSchoolId);
+            if (school) {
+                delete school.logo;
+                database.save();
+                updateNavbarLogo(school);
+            }
+            
+            showNotification('Logo supprimé avec succès');
+        }
+
+        // =============================================
+        // GESTION DES ÉVÉNEMENTS
+        // =============================================
+        
+        // Gestion du type d'utilisateur
+        let userType = 'auto-ecole';
+        
+        document.querySelectorAll('.user-type-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.user-type-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                userType = this.dataset.type;
+                
+                // Mettre à jour le bouton de connexion
+                const loginBtn = document.getElementById('login-btn');
+                if (userType === 'admin') {
+                    loginBtn.classList.add('btn-admin');
+                    loginBtn.innerHTML = '<i class="fas fa-user-shield me-2"></i>Connexion Admin';
+                } else {
+                    loginBtn.classList.remove('btn-admin');
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Se connecter';
+                }
+            });
+        });
+
+        // Gestion de la navigation entre les pages
+        document.getElementById('show-register').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('login-page').classList.remove('active');
+            document.getElementById('register-page').classList.add('active');
+        });
+
+        document.getElementById('show-login').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('register-page').classList.remove('active');
+            document.getElementById('login-page').classList.add('active');
+        });
+
+        // Gestion de la connexion
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            // Simulation de connexion
+            if (userType === 'admin') {
+                // Connexion admin
+                if (email === 'admin@efacture.com' && password === 'admin123') {
+                    document.getElementById('login-page').classList.remove('active');
+                    document.getElementById('admin-app').classList.add('active');
+                    loadData();
+                    loadAdminMessages();
+                    loadRecipients();
+                    showNotification('Connexion administrateur réussie !');
+                } else {
+                    showNotification('Identifiants administrateur incorrects', 'error');
+                }
+            } else {
+                // Connexion auto-école
+                const school = database.drivingSchools.find(s => s.email === email);
+                if (school) {
+                    if (school.status === 'pending') {
+                        showNotification('Votre compte est en attente de validation par l\'administrateur', 'warning');
+                        return;
+                    }
+                    
+                    localStorage.setItem('currentSchoolId', school.id);
+                    document.getElementById('current-school-name').textContent = school.name;
+                    document.getElementById('login-page').classList.remove('active');
+                    document.getElementById('main-app').classList.add('active');
+                    loadData();
+                    loadCandidatesForInvoice();
+                    loadSchoolMessages();
+                    showNotification(`Connexion réussie ! Bienvenue ${school.name}`);
+                } else {
+                    showNotification('Aucune auto-école trouvée avec cet email', 'error');
+                }
+            }
+        });
+
+        // Gestion de l'inscription
+        document.getElementById('register-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (password !== confirmPassword) {
+                showNotification('Les mots de passe ne correspondent pas', 'error');
+                return;
+            }
+            
+            const schoolData = {
+                id: database.generateId(),
+                name: document.getElementById('school-name').value,
+                owner: document.getElementById('owner-name').value,
+                email: document.getElementById('register-email').value,
+                phone: document.getElementById('register-phone').value,
+                address: document.getElementById('school-address').value,
+                ifu: document.getElementById('school-ifu').value,
+                registrationDate: new Date().toISOString(),
+                status: 'pending'
+            };
+            
+            database.drivingSchools.push(schoolData);
+            database.save();
+            
+            showNotification('Inscription réussie ! Votre compte sera activé après validation par notre équipe.');
+            document.getElementById('register-page').classList.remove('active');
+            document.getElementById('login-page').classList.add('active');
+            
+            // Réinitialiser le formulaire
+            document.getElementById('register-form').reset();
+        });
+
+        // Gestion de la déconnexion
+        document.getElementById('logout-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('main-app').classList.remove('active');
+            document.getElementById('login-page').classList.add('active');
+            localStorage.removeItem('currentSchoolId');
+            showNotification('Déconnexion réussie');
+        });
+
+        document.getElementById('admin-logout-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('admin-app').classList.remove('active');
+            document.getElementById('login-page').classList.add('active');
+            showNotification('Déconnexion administrateur réussie');
+        });
+
+        // Navigation dans l'interface auto-école
+        document.querySelectorAll('#main-app .sidebar .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Masquer toutes les sections
+                document.querySelectorAll('#main-app .content-section').forEach(section => {
+                    section.classList.add('d-none');
+                });
+                
+                // Afficher la section correspondante
+                const targetId = this.getAttribute('href').substring(1);
+                document.getElementById(targetId).classList.remove('d-none');
+                
+                // Mettre à jour l'état actif dans la sidebar
+                document.querySelectorAll('#main-app .sidebar .nav-link').forEach(navLink => {
+                    navLink.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // Recharger les données si nécessaire
+                if (targetId === 'messages') {
+                    loadSchoolMessages();
+                } else if (targetId === 'candidats' || targetId === 'factures' || targetId === 'paiements' || targetId === 'parametres') {
+                    loadData();
+                }
+            });
+        });
+
+        // Navigation dans l'interface admin
+        document.querySelectorAll('#admin-app .sidebar .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                showSection(targetId);
+            });
+        });
+
+        // Gestion des boutons de validation
+        document.getElementById('validate-all-btn').addEventListener('click', validateAllPendingSchools);
+        document.getElementById('validate-all-schools-btn').addEventListener('click', validateAllPendingSchools);
+
+        // Gestion de l'ajout de candidat
+        document.getElementById('save-candidate-btn').addEventListener('click', function() {
+            const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
+            
+            const candidateData = {
+                id: database.generateId(),
+                schoolId: currentSchoolId,
+                lastName: document.getElementById('candidateLastName').value,
+                firstName: document.getElementById('candidateFirstName').value,
+                email: document.getElementById('candidateEmail').value,
+                phone: document.getElementById('candidatePhone').value,
+                address: document.getElementById('candidateAddress').value,
+                registrationDate: new Date().toISOString()
+            };
+            
+            database.candidates.push(candidateData);
+            database.save();
+            
+            // Fermer le modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addCandidateModal'));
+            modal.hide();
+            
+            // Recharger les données
+            loadData();
+            loadCandidatesForInvoice();
+            
+            // Réinitialiser le formulaire
+            document.getElementById('add-candidate-form').reset();
+            
+            showNotification('Candidat ajouté avec succès !');
+        });
+
+        // Gestion de la mise à jour de candidat
+        document.getElementById('update-candidate-btn').addEventListener('click', function() {
+            const candidateId = document.getElementById('edit-candidate-id').value;
+            const candidate = database.candidates.find(c => c.id === candidateId);
+            
+            if (candidate) {
+                candidate.lastName = document.getElementById('edit-candidateLastName').value;
+                candidate.firstName = document.getElementById('edit-candidateFirstName').value;
+                candidate.email = document.getElementById('edit-candidateEmail').value;
+                candidate.phone = document.getElementById('edit-candidatePhone').value;
+                candidate.address = document.getElementById('edit-candidateAddress').value;
+                
+                database.save();
+                
+                // Fermer le modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editCandidateModal'));
+                modal.hide();
+                
+                // Recharger les données
+                loadData();
+                loadCandidatesForInvoice();
+                
+                showNotification('Candidat modifié avec succès !');
+            }
+        });
+
+        // Gestion de l'ajout de facture
+        document.getElementById('save-invoice-btn').addEventListener('click', function() {
+            const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
+            const candidateId = document.getElementById('invoiceCandidate').value;
+            const invoiceDate = document.getElementById('invoiceDate').value;
+            const dueDate = document.getElementById('invoiceDueDate').value;
+            const paymentMethod = document.getElementById('invoicePayment').value;
+            const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
+            
+            // Validation des champs
+            if (!candidateId) {
+                showNotification('Veuillez sélectionner un candidat', 'error');
+                return;
+            }
+            
+            if (!invoiceDate || !dueDate) {
+                showNotification('Veuillez renseigner les dates', 'error');
+                return;
+            }
+            
+            if (!paymentMethod) {
+                showNotification('Veuillez sélectionner une méthode de paiement', 'error');
+                return;
+            }
+            
+            // Récupérer les articles de la facture
+            const items = [];
+            let hasValidItems = false;
+            
+            document.querySelectorAll('#invoiceItems tr').forEach(row => {
+                const description = row.querySelector('.item-description').value;
+                const quantity = parseFloat(row.querySelector('.quantity').value) || 0;
+                const price = parseFloat(row.querySelector('.price').value) || 0;
+                
+                if (description && quantity > 0 && price > 0) {
+                    items.push({
+                        description: description,
+                        quantity: quantity,
+                        price: price,
+                        total: quantity * price
+                    });
+                    hasValidItems = true;
+                }
+            });
+            
+            if (!hasValidItems) {
+                showNotification('Veuillez ajouter au moins un article valide', 'error');
+                return;
+            }
+            
+            const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace(/[^0-9.]/g, '')) || 0;
+            const taxAmount = parseFloat(document.getElementById('taxAmount').textContent.replace(/[^0-9.]/g, '')) || 0;
+            const totalAmount = parseFloat(document.getElementById('totalAmount').textContent.replace(/[^0-9.]/g, '')) || 0;
+            
+            // Vérifier que le montant payé n'est pas supérieur au total
+            if (amountPaid > totalAmount) {
+                showNotification('Le montant payé ne peut pas être supérieur au total de la facture', 'error');
+                return;
+            }
+            
+            const invoiceData = {
+                id: database.generateId(),
+                schoolId: currentSchoolId,
+                candidateId: candidateId,
+                number: 'INV-' + database.generateId().substring(0, 8).toUpperCase(),
+                date: invoiceDate,
+                dueDate: dueDate,
+                items: items,
+                subtotal: subtotal,
+                taxAmount: taxAmount,
+                totalAmount: totalAmount,
+                amountPaid: amountPaid,
+                status: amountPaid >= totalAmount ? 'paid' : 'pending',
+                paymentMethod: paymentMethod
+            };
+            
+            database.invoices.push(invoiceData);
+            database.save();
+            
+            // Fermer le modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addInvoiceModal'));
+            modal.hide();
+            
+            // Recharger les données
+            loadData();
+            
+            // Réinitialiser le formulaire
+            document.getElementById('add-invoice-form').reset();
+            updateInvoiceTotals();
+            
+            showNotification('Facture créée avec succès !');
+        });
+
+        // Gestion des articles de facture
+        document.getElementById('addItem').addEventListener('click', function() {
+            const invoiceItems = document.getElementById('invoiceItems');
+            const newRow = document.createElement('tr');
+            
+            newRow.innerHTML = `
+                <td>
+                    <input type="text" class="form-control item-description" placeholder="Description de l'article" required>
+                </td>
+                <td>
+                    <input type="number" class="form-control quantity" value="1" min="1" required>
+                </td>
+                <td>
+                    <input type="number" class="form-control price" value="0" step="0.01" required>
+                </td>
+                <td class="item-total">0 FCFA</td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-danger remove-item"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+            
+            invoiceItems.appendChild(newRow);
+            
+            // Ajouter l'événement de suppression
+            newRow.querySelector('.remove-item').addEventListener('click', function() {
+                this.closest('tr').remove();
+                updateInvoiceTotals();
+            });
+            
+            // Ajouter les événements pour mettre à jour les totaux
+            const inputs = newRow.querySelectorAll('.quantity, .price');
+            inputs.forEach(input => {
+                input.addEventListener('input', updateInvoiceTotals);
+            });
+        });
+
+        // Mettre à jour les totaux de la facture
+        function updateInvoiceTotals() {
+            let subtotal = 0;
+            
+            document.querySelectorAll('#invoiceItems tr').forEach(row => {
+                const quantity = parseFloat(row.querySelector('.quantity').value) || 0;
+                const price = parseFloat(row.querySelector('.price').value) || 0;
+                const total = quantity * price;
+                
+                row.querySelector('.item-total').textContent = formatCFA(total);
+                subtotal += total;
+            });
+            
+            const taxRate = 0.18; // 18% de TVA
+            const taxAmount = subtotal * taxRate;
+            const totalAmount = subtotal + taxAmount;
+            const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
+            const remainingAmount = totalAmount - amountPaid;
+            
+            document.getElementById('subtotal').textContent = formatCFA(subtotal);
+            document.getElementById('taxAmount').textContent = formatCFA(taxAmount);
+            document.getElementById('totalAmount').textContent = formatCFA(totalAmount);
+            document.getElementById('remainingAmountDisplay').textContent = formatCFA(remainingAmount);
+        }
+
+        // Initialiser les événements pour les articles existants
+        document.querySelectorAll('#invoiceItems .quantity, #invoiceItems .price').forEach(input => {
+            input.addEventListener('input', updateInvoiceTotals);
+        });
+        
+        document.querySelectorAll('#invoiceItems .remove-item').forEach(button => {
+            button.addEventListener('click', function() {
+                this.closest('tr').remove();
+                updateInvoiceTotals();
+            });
+        });
+
+        // Mettre à jour le montant restant quand le montant payé change
+        document.getElementById('amountPaid').addEventListener('input', updateInvoiceTotals);
+
+        // Gestion du téléchargement de facture
+        document.getElementById('download-invoice-btn').addEventListener('click', function() {
+            const invoiceId = this.getAttribute('data-invoice-id');
+            downloadInvoicePDF(invoiceId);
+        });
+
+        // Gestion des paramètres auto-école
+        document.getElementById('school-settings-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
+            const school = database.drivingSchools.find(s => s.id === currentSchoolId);
+            
+            if (school) {
+                school.name = document.getElementById('settings-school-name').value;
+                school.owner = document.getElementById('settings-owner-name').value;
+                school.email = document.getElementById('settings-school-email').value;
+                school.phone = document.getElementById('settings-school-phone').value;
+                school.address = document.getElementById('settings-school-address').value;
+                school.ifu = document.getElementById('settings-school-ifu').value;
+                
+                database.save();
+                document.getElementById('current-school-name').textContent = school.name;
+                updateNavbarLogo(school);
+                showNotification('Paramètres enregistrés avec succès !');
+            }
+        });
+
+        // Gestion des paramètres de facturation
+        document.getElementById('billing-settings-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            showNotification('Paramètres de facturation enregistrés avec succès !');
+        });
+
+        // Gestion des messages admin
+        document.getElementById('admin-message-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const recipient = document.getElementById('message-recipient').value;
+            const subject = document.getElementById('message-subject').value;
+            const content = document.getElementById('message-content').value;
+            
+            if (!recipient || !subject || !content) {
+                showNotification('Veuillez remplir tous les champs', 'error');
+                return;
+            }
+            
+            sendAdminMessage(recipient, subject, content);
+            
+            // Réinitialiser le formulaire
+            document.getElementById('admin-message-form').reset();
+        });
+
+        // Gestion des paramètres admin
+        document.getElementById('admin-general-settings-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            showNotification('Paramètres généraux enregistrés avec succès !');
+        });
+
+        document.getElementById('admin-security-settings-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            showNotification('Paramètres de sécurité enregistrés avec succès !');
+        });
+
+        // Gestion du drag and drop pour le logo
+        document.getElementById('logo-upload-area').addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        document.getElementById('logo-upload-area').addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+
+        document.getElementById('logo-upload-area').addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('logo-upload').files = files;
+                handleLogoUpload({ target: { files: files } });
+            }
+        });
+
+        // Gestion du changement de fichier logo
+        document.getElementById('logo-upload').addEventListener('change', handleLogoUpload);
+
+        // Initialiser les totaux
+        updateInvoiceTotals();
+
+        // Définir les dates par défaut pour la facture
+        const today = new Date();
+        const dueDate = new Date();
+        dueDate.setDate(today.getDate() + 15); // Échéance dans 15 jours
+        
+        document.getElementById('invoiceDate').valueAsDate = today;
+        document.getElementById('invoiceDueDate').valueAsDate = dueDate;
+
+        // Initialiser l'application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Charger les données si nécessaire
+            if (database.drivingSchools.length === 0) {
+                // Ajouter des données d'exemple
+                const sampleSchool = {
+                    id: 'sample-school',
+                    name: 'Auto-École Excellence',
+                    owner: 'Jean Martin',
+                    email: 'contact@excellence-auto.fr',
+                    phone: '01 23 45 67 89',
+                    address: '123 Avenue de la République, 75011 Paris',
+                    ifu: 'IFU123456789',
+                    registrationDate: new Date().toISOString(),
+                    status: 'validated'
+                };
+                
+                database.drivingSchools.push(sampleSchool);
+                database.save();
+            }
+            
+            // Ajouter des candidats d'exemple
+            if (database.candidates.length === 0) {
+                const sampleCandidates = [
+                    {
+                        id: 'candidate-1',
+                        schoolId: 'sample-school',
+                        lastName: 'Dupont',
+                        firstName: 'Marie',
+                        email: 'marie.dupont@email.com',
+                        phone: '06 12 34 56 78',
+                        address: '15 Rue de la Paix, 75002 Paris',
+                        registrationDate: new Date().toISOString()
+                    },
+                    {
+                        id: 'candidate-2',
+                        schoolId: 'sample-school',
+                        lastName: 'Martin',
+                        firstName: 'Pierre',
+                        email: 'pierre.martin@email.com',
+                        phone: '06 98 76 54 32',
+                        address: '22 Avenue des Champs-Élysées, 75008 Paris',
+                        registrationDate: new Date().toISOString()
+                    }
+                ];
+                
+                sampleCandidates.forEach(candidate => {
+                    database.candidates.push(candidate);
+                });
+                database.save();
+            }
+        });
+    </script>
+</body>
+</html>
