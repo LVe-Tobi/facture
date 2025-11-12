@@ -10,6 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+        /* Styles CSS existants conservés */
         :root {
             --primary: #4361ee;
             --primary-dark: #3a56d4;
@@ -449,9 +450,9 @@
             color: var(--success);
         }
         
-        .status-pending {
-            background: rgba(255, 209, 102, 0.2);
-            color: #e6a500;
+        .status-validated {
+            background: rgba(6, 214, 160, 0.2);
+            color: var(--success);
         }
         
         .status-overdue {
@@ -743,7 +744,7 @@
         /* Facture PDF - Styles optimisés pour tous les écrans */
         .invoice-preview {
             background: white;
-            padding: 1.5rem;
+            padding: 1rem;
             border-radius: 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             max-width: 100%;
@@ -755,15 +756,15 @@
         .invoice-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             border-bottom: 2px solid var(--primary);
-            padding-bottom: 1rem;
+            padding-bottom: 0.75rem;
             flex-wrap: wrap;
-            gap: 1rem;
+            gap: 0.75rem;
         }
         
         .invoice-title {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 700;
             color: var(--primary);
         }
@@ -771,48 +772,48 @@
         .invoice-details {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
+            gap: 1rem;
+            margin-bottom: 1rem;
         }
         
         @media (max-width: 768px) {
             .invoice-details {
                 grid-template-columns: 1fr;
-                gap: 1rem;
+                gap: 0.75rem;
             }
         }
         
         .invoice-items {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             table-layout: fixed;
         }
         
         .invoice-items th {
             background: var(--primary);
             color: white;
-            padding: 10px;
+            padding: 8px;
             text-align: left;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
         
         .invoice-items td {
-            padding: 10px;
+            padding: 8px;
             border-bottom: 1px solid var(--border);
             word-wrap: break-word;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
         
         .invoice-totals {
             width: 100%;
-            max-width: 300px;
+            max-width: 250px;
             margin-left: auto;
         }
         
         .invoice-totals tr td {
-            padding: 8px 0;
+            padding: 6px 0;
         }
         
         .invoice-totals tr:last-child {
@@ -821,21 +822,21 @@
         }
         
         .invoice-footer {
-            margin-top: 2rem;
+            margin-top: 1.5rem;
             text-align: center;
             color: var(--gray);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
         }
         
         .school-logo {
-            max-width: 120px;
-            max-height: 60px;
+            max-width: 100px;
+            max-height: 50px;
             object-fit: contain;
         }
         
         .logo-preview {
-            max-width: 100px;
-            max-height: 60px;
+            max-width: 80px;
+            max-height: 50px;
             object-fit: contain;
             border: 2px dashed #ddd;
             border-radius: 8px;
@@ -881,75 +882,75 @@
             height: 3rem;
         }
 
-        /* Styles spécifiques pour le PDF */
+        /* Styles spécifiques pour le PDF optimisé */
         .pdf-optimized {
             width: 210mm;
             min-height: 297mm;
-            padding: 15mm;
+            padding: 12mm;
             margin: 0 auto;
             background: white;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             font-family: 'Inter', Arial, sans-serif;
-            font-size: 10pt;
-            line-height: 1.3;
+            font-size: 9pt;
+            line-height: 1.2;
         }
 
         .pdf-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             border-bottom: 2px solid #4361ee;
-            padding-bottom: 10px;
+            padding-bottom: 8px;
         }
 
         .pdf-title {
-            font-size: 20pt;
+            font-size: 18pt;
             font-weight: bold;
             color: #4361ee;
         }
 
         .pdf-company-info {
             text-align: right;
-            font-size: 9pt;
+            font-size: 8pt;
         }
 
         .pdf-details {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
+            gap: 12px;
+            margin-bottom: 12px;
         }
 
         .pdf-items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
-            font-size: 9pt;
+            margin-bottom: 12px;
+            font-size: 8pt;
         }
 
         .pdf-items-table th {
             background: #4361ee;
             color: white;
-            padding: 8px;
+            padding: 6px;
             text-align: left;
             font-weight: bold;
         }
 
         .pdf-items-table td {
-            padding: 8px;
+            padding: 6px;
             border-bottom: 1px solid #ddd;
         }
 
         .pdf-totals {
             width: 100%;
-            max-width: 250px;
+            max-width: 200px;
             margin-left: auto;
-            font-size: 9pt;
+            font-size: 8pt;
         }
 
         .pdf-totals tr td {
-            padding: 4px 0;
+            padding: 3px 0;
         }
 
         .pdf-totals tr:last-child {
@@ -958,16 +959,16 @@
         }
 
         .pdf-footer {
-            margin-top: 20px;
+            margin-top: 15px;
             text-align: center;
             color: #666;
-            font-size: 8pt;
+            font-size: 7pt;
         }
         
         /* Styles pour les petits écrans */
         @media (max-width: 576px) {
             .invoice-preview {
-                padding: 1rem;
+                padding: 0.75rem;
             }
             
             .invoice-header {
@@ -976,22 +977,22 @@
             }
             
             .invoice-title {
-                font-size: 1.2rem;
+                font-size: 1.1rem;
             }
             
             .invoice-items th,
             .invoice-items td {
-                padding: 8px 5px;
+                padding: 6px 4px;
                 font-size: 0.8rem;
             }
             
             .pdf-optimized {
-                padding: 10mm;
-                font-size: 9pt;
+                padding: 8mm;
+                font-size: 8pt;
             }
             
             .pdf-title {
-                font-size: 16pt;
+                font-size: 14pt;
             }
         }
     </style>
@@ -1200,7 +1201,7 @@
                                     <div class="dashboard-card card-invoices floating">
                                         <span class="icon">🧾</span>
                                         <div class="number">0</div>
-                                        <div class="label">Factures Payées</div>
+                                        <div class="label">Factures Validées</div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -1479,7 +1480,7 @@
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="tax-rate" class="form-label">Taux de TVA (%)</label>
-                                                    <input type="number" class="form-control" id="tax-rate" value="18" step="0.1" required>
+                                                    <input type="number" class="form-control" id="tax-rate" value="0" step="0.1" required>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="currency" class="form-label">Devise</label>
@@ -1884,7 +1885,7 @@
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="admin-tax-rate" class="form-label">Taux de TVA par défaut (%)</label>
-                                                    <input type="number" class="form-control" id="admin-tax-rate" value="18" step="0.1" required>
+                                                    <input type="number" class="form-control" id="admin-tax-rate" value="0" step="0.1" required>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="admin-invoice-prefix" class="form-label">Préfixe des factures</label>
@@ -2074,7 +2075,7 @@
                                         <td colspan="2"><strong id="subtotal">0 FCFA</strong></td>
                                     </tr>
                                     <tr>
-                                        <td colspan="3" class="text-end"><strong>TVA (18%):</strong></td>
+                                        <td colspan="3" class="text-end"><strong>TVA (0%):</strong></td>
                                         <td colspan="2"><strong id="taxAmount">0 FCFA</strong></td>
                                     </tr>
                                     <tr>
@@ -2181,18 +2182,77 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // =============================================
-        // SERVICE DE STOCKAGE EN LIGNE
+        // SERVICE DE STOCKAGE EN LIGNE AVEC IMGBB POUR LES LOGOS
         // =============================================
+        
+        // Configuration pour ImgBB (stockage d'images gratuit)
+        const IMGBB_CONFIG = {
+            API_KEY: '4109561f6c596e04d748ea3bad198534', // Votre clé API ImgBB
+            UPLOAD_URL: 'https://api.imgbb.com/1/upload'
+        };
         
         // Configuration pour JSONBin.io (service de stockage en ligne gratuit)
         const JSONBIN_CONFIG = {
             // Votre X-Master-Key
             API_KEY: '$2a$10$ubC0V678cM4EzyoX5LcEf.rE022jjEWgmStZ6ZgcVd/B30AURMxHa',
             // Votre Bin ID
-            BIN_ID: '69138fb743b1c97be9a76abc'
+            BIN_ID: '69138d8403998b11ea8d916e'
         };
         
-        // Service de stockage en ligne
+        // Service de stockage en ligne pour les images
+        const ImageStorage = {
+            // Uploader une image vers ImgBB
+            async uploadImage(file) {
+                try {
+                    showLoading(true);
+                    
+                    const formData = new FormData();
+                    formData.append('image', file);
+                    formData.append('key', IMGBB_CONFIG.API_KEY);
+                    
+                    const response = await fetch(IMGBB_CONFIG.UPLOAD_URL, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Erreur lors de l\'upload de l\'image');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        return data.data.url; // URL de l'image uploadée
+                    } else {
+                        throw new Error(data.error?.message || 'Erreur inconnue lors de l\'upload');
+                    }
+                    
+                } catch (error) {
+                    console.error('Erreur lors de l\'upload de l\'image:', error);
+                    
+                    // Fallback: stocker l'image en base64 dans la base de données
+                    return new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            resolve(e.target.result);
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                } finally {
+                    showLoading(false);
+                }
+            },
+            
+            // Supprimer une image (fonctionnalité limitée avec ImgBB gratuit)
+            async deleteImage(imageUrl) {
+                // Avec ImgBB gratuit, on ne peut pas supprimer les images via l'API
+                // Cette fonction est donc seulement indicative
+                console.log('Image à supprimer:', imageUrl);
+                return true;
+            }
+        };
+        
+        // Service de stockage en ligne pour les données
         const OnlineStorage = {
             // Charger les données depuis le stockage en ligne
             async loadData() {
@@ -2496,15 +2556,15 @@
             const schoolCandidates = database.candidates.filter(c => c.schoolId === currentSchoolId).length;
             const schoolInvoices = database.invoices.filter(i => i.schoolId === currentSchoolId);
             const paidInvoices = schoolInvoices.filter(i => i.status === 'paid').length;
-            const pendingInvoices = schoolInvoices.filter(i => i.status === 'pending').length;
+            const validatedInvoices = schoolInvoices.filter(i => i.status === 'validated').length;
             const totalRevenue = schoolInvoices
                 .filter(i => i.status === 'paid')
                 .reduce((sum, invoice) => sum + invoice.totalAmount, 0);
             
             // Mettre à jour l'interface auto-école
             document.querySelector('#dashboard .card-candidates .number').textContent = schoolCandidates;
-            document.querySelector('#dashboard .card-invoices .number').textContent = paidInvoices;
-            document.querySelector('#dashboard .card-payments .number').textContent = pendingInvoices;
+            document.querySelector('#dashboard .card-invoices .number').textContent = validatedInvoices;
+            document.querySelector('#dashboard .card-payments .number').textContent = paidInvoices;
             document.querySelector('#dashboard .card-revenue .number').innerHTML = `${formatCFA(totalRevenue)}`;
             
             // Statistiques admin
@@ -2725,7 +2785,10 @@
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <div class="user-avatar me-2" style="width: 30px; height: 30px; font-size: 0.8rem;">${school.name.substring(0, 2).toUpperCase()}</div>
+                                    ${school.logo ? 
+                                        `<img src="${school.logo}" alt="Logo ${school.name}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; margin-right: 10px;">` : 
+                                        `<div class="user-avatar me-2" style="width: 30px; height: 30px; font-size: 0.8rem;">${school.name.substring(0, 2).toUpperCase()}</div>`
+                                    }
                                     ${school.name}
                                 </div>
                             </td>
@@ -2834,9 +2897,9 @@
                 const invoicesHTML = schoolInvoices.map(invoice => {
                     const candidate = database.candidates.find(c => c.id === invoice.candidateId) || {};
                     const statusClass = invoice.status === 'paid' ? 'status-paid' : 
-                                      invoice.status === 'pending' ? 'status-pending' : 'status-overdue';
+                                      invoice.status === 'validated' ? 'status-validated' : 'status-overdue';
                     const statusText = invoice.status === 'paid' ? 'Payé' : 
-                                     invoice.status === 'pending' ? 'En attente' : 'En retard';
+                                     invoice.status === 'validated' ? 'Validé' : 'En retard';
                     
                     const amountPaid = invoice.amountPaid || 0;
                     const remainingAmount = invoice.totalAmount - amountPaid;
@@ -2863,9 +2926,9 @@
                 const allInvoicesHTML = schoolInvoices.map(invoice => {
                     const candidate = database.candidates.find(c => c.id === invoice.candidateId) || {};
                     const statusClass = invoice.status === 'paid' ? 'status-paid' : 
-                                      invoice.status === 'pending' ? 'status-pending' : 'status-overdue';
+                                      invoice.status === 'validated' ? 'status-validated' : 'status-overdue';
                     const statusText = invoice.status === 'paid' ? 'Payé' : 
-                                     invoice.status === 'pending' ? 'En attente' : 'En retard';
+                                     invoice.status === 'validated' ? 'Validé' : 'En retard';
                     
                     const amountPaid = invoice.amountPaid || 0;
                     const remainingAmount = invoice.totalAmount - amountPaid;
@@ -2897,7 +2960,7 @@
             
             // Charger les paiements en attente
             const pendingPaymentsList = document.getElementById('pending-payments-list');
-            const pendingInvoices = schoolInvoices.filter(i => i.status === 'pending');
+            const pendingInvoices = schoolInvoices.filter(i => i.status === 'validated');
             
             if (pendingInvoices.length === 0) {
                 pendingPaymentsList.innerHTML = `
@@ -2953,6 +3016,11 @@
         async function deleteSchool(schoolId) {
             const school = database.drivingSchools.find(s => s.id === schoolId);
             if (school && confirm(`Êtes-vous sûr de vouloir supprimer l'auto-école "${school.name}" ?`)) {
+                // Supprimer le logo s'il existe
+                if (school.logo && school.logo.startsWith('http')) {
+                    await ImageStorage.deleteImage(school.logo);
+                }
+                
                 database.drivingSchools = database.drivingSchools.filter(s => s.id !== schoolId);
                 await database.save();
                 loadData();
@@ -3019,7 +3087,7 @@
                         <div>
                             <h5>Détails de paiement:</h5>
                             <p class="mb-1"><strong>Méthode:</strong> ${invoice.paymentMethod}</p>
-                            <p class="mb-1"><strong>Statut:</strong> ${invoice.status === 'paid' ? 'Payé' : 'En attente'}</p>
+                            <p class="mb-1"><strong>Statut:</strong> ${invoice.status === 'paid' ? 'Payé' : 'Validé'}</p>
                             <p class="mb-1"><strong>Montant à payer:</strong> ${formatCFA(invoice.totalAmount)}</p>
                             <p class="mb-0"><strong>Reste à payer:</strong> ${formatCFA(remainingAmount)}</p>
                         </div>
@@ -3050,7 +3118,7 @@
                             <td class="text-end">${formatCFA(invoice.subtotal)}</td>
                         </tr>
                         <tr>
-                            <td>TVA (18%):</td>
+                            <td>TVA (0%):</td>
                             <td class="text-end">${formatCFA(invoice.taxAmount)}</td>
                         </tr>
                         <tr>
@@ -3073,7 +3141,7 @@
             modal.show();
         }
         
-        // Télécharger une facture en PDF (version optimisée)
+        // Télécharger une facture en PDF (version optimisée pour < 1Mo)
         function downloadInvoicePDF(invoiceId) {
             const invoice = database.invoices.find(i => i.id === invoiceId);
             if (!invoice) return;
@@ -3083,34 +3151,46 @@
             // Utiliser html2canvas pour capturer le contenu
             const element = document.getElementById('invoice-to-print');
             
-            // Configuration optimisée pour html2canvas
+            // Configuration ultra-optimisée pour réduire la taille du PDF
             const options = {
-                scale: 2,
+                scale: 1.5, // Réduction de l'échelle pour diminuer la taille
                 useCORS: true,
                 logging: false,
                 width: element.scrollWidth,
                 height: element.scrollHeight,
                 windowWidth: element.scrollWidth,
                 windowHeight: element.scrollHeight,
+                backgroundColor: '#ffffff',
+                imageTimeout: 0,
+                removeContainer: true,
                 onclone: function(clonedDoc) {
                     const clonedElement = clonedDoc.getElementById('invoice-to-print');
                     if (clonedElement) {
-                        // Appliquer des styles spécifiques pour le PDF
+                        // Appliquer des styles spécifiques pour le PDF compact
                         clonedElement.style.width = '210mm';
                         clonedElement.style.minHeight = '297mm';
-                        clonedElement.style.padding = '15mm';
+                        clonedElement.style.padding = '12mm';
                         clonedElement.style.margin = '0 auto';
                         clonedElement.style.background = 'white';
                         clonedElement.style.boxShadow = 'none';
                         clonedElement.style.fontFamily = 'Arial, sans-serif';
-                        clonedElement.style.fontSize = '10pt';
-                        clonedElement.style.lineHeight = '1.3';
+                        clonedElement.style.fontSize = '9pt';
+                        clonedElement.style.lineHeight = '1.2';
+                        
+                        // Optimiser les images pour réduire la taille
+                        const images = clonedElement.getElementsByTagName('img');
+                        for (let img of images) {
+                            img.style.maxWidth = '80px';
+                            img.style.maxHeight = '40px';
+                        }
                     }
                 }
             };
             
             html2canvas(element, options).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
+                // Réduire la qualité de l'image pour diminuer la taille
+                const imgData = canvas.toDataURL('image/jpeg', 0.7); // JPEG avec qualité 70%
+                
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 
@@ -3123,19 +3203,33 @@
                 let position = 0;
                 
                 // Ajouter la première page
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
                 heightLeft -= pageHeight;
                 
                 // Ajouter des pages supplémentaires si nécessaire
                 while (heightLeft >= 0) {
                     position = heightLeft - imgHeight;
                     pdf.addPage();
-                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
                     heightLeft -= pageHeight;
                 }
                 
-                pdf.save(`facture-${invoice.number}.pdf`);
-                showNotification(`Facture ${invoice.number} téléchargée en PDF avec succès !`);
+                // Obtenir le PDF en tant que blob pour vérifier la taille
+                const pdfBlob = pdf.output('blob');
+                const fileSize = pdfBlob.size / 1024 / 1024; // Taille en Mo
+                
+                if (fileSize > 1) {
+                    showNotification('La facture est trop volumineuse. Optimisation en cours...', 'warning');
+                    // Réessayer avec une qualité encore plus basse
+                    const lowQualityImgData = canvas.toDataURL('image/jpeg', 0.5);
+                    const pdfLow = new jsPDF('p', 'mm', 'a4');
+                    pdfLow.addImage(lowQualityImgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+                    pdfLow.save(`facture-${invoice.number}.pdf`);
+                    showNotification(`Facture ${invoice.number} téléchargée (taille réduite) !`);
+                } else {
+                    pdf.save(`facture-${invoice.number}.pdf`);
+                    showNotification(`Facture ${invoice.number} téléchargée avec succès ! (${fileSize.toFixed(2)} Mo)`);
+                }
             }).catch(error => {
                 console.error('Erreur lors de la génération du PDF:', error);
                 showNotification('Erreur lors de la génération du PDF', 'error');
@@ -3245,24 +3339,58 @@
                 return;
             }
             
-            const reader = new FileReader();
-            reader.onload = async function(e) {
+            // Vérifier la taille du fichier (max 500KB pour optimiser l'espace)
+            if (file.size > 500 * 1024) {
+                showNotification('L\'image est trop volumineuse. Veuillez choisir une image de moins de 500KB.', 'error');
+                return;
+            }
+            
+            showNotification('Upload du logo en cours...', 'warning');
+            
+            try {
+                // Uploader l'image vers ImgBB
+                const imageUrl = await ImageStorage.uploadImage(file);
+                
                 const logoPreview = document.getElementById('logo-preview');
                 const logoPreviewContainer = document.getElementById('logo-preview-container');
                 
-                logoPreview.src = e.target.result;
+                logoPreview.src = imageUrl;
                 logoPreviewContainer.style.display = 'block';
                 
-                // Sauvegarder le logo
+                // Sauvegarder le logo dans la base de données
                 const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
                 const school = database.drivingSchools.find(s => s.id === currentSchoolId);
                 if (school) {
-                    school.logo = e.target.result;
+                    school.logo = imageUrl;
                     await database.save();
                     updateNavbarLogo(school);
                 }
-            };
-            reader.readAsDataURL(file);
+                
+                showNotification('Logo uploadé avec succès !');
+            } catch (error) {
+                console.error('Erreur lors de l\'upload du logo:', error);
+                showNotification('Erreur lors de l\'upload du logo. Utilisation du stockage local.', 'error');
+                
+                // Fallback: stocker l'image en base64
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const logoPreview = document.getElementById('logo-preview');
+                    const logoPreviewContainer = document.getElementById('logo-preview-container');
+                    
+                    logoPreview.src = e.target.result;
+                    logoPreviewContainer.style.display = 'block';
+                    
+                    // Sauvegarder le logo
+                    const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
+                    const school = database.drivingSchools.find(s => s.id === currentSchoolId);
+                    if (school) {
+                        school.logo = e.target.result;
+                        await database.save();
+                        updateNavbarLogo(school);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
         }
         
         async function removeLogo() {
@@ -3276,6 +3404,11 @@
             const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
             const school = database.drivingSchools.find(s => s.id === currentSchoolId);
             if (school) {
+                // Si le logo est stocké en ligne, essayer de le supprimer
+                if (school.logo && school.logo.startsWith('http')) {
+                    await ImageStorage.deleteImage(school.logo);
+                }
+                
                 delete school.logo;
                 await database.save();
                 updateNavbarLogo(school);
@@ -3587,7 +3720,7 @@
                 taxAmount: taxAmount,
                 totalAmount: totalAmount,
                 amountPaid: amountPaid,
-                status: amountPaid >= totalAmount ? 'paid' : 'pending',
+                status: amountPaid >= totalAmount ? 'paid' : 'validated',
                 paymentMethod: paymentMethod
             };
             
@@ -3657,7 +3790,7 @@
                 subtotal += total;
             });
             
-            const taxRate = 0.18; // 18% de TVA
+            const taxRate = 0; // TVA à 0%
             const taxAmount = subtotal * taxRate;
             const totalAmount = subtotal + taxAmount;
             const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
@@ -3773,10 +3906,10 @@
         // Initialiser les totaux
         updateInvoiceTotals();
 
-        // Définir les dates par défaut pour la facture
+        // Définir les dates par défaut pour la facture (échéance dans 3 mois)
         const today = new Date();
         const dueDate = new Date();
-        dueDate.setDate(today.getDate() + 15); // Échéance dans 15 jours
+        dueDate.setMonth(today.getMonth() + 3); // Échéance dans 3 mois
         
         document.getElementById('invoiceDate').valueAsDate = today;
         document.getElementById('invoiceDueDate').valueAsDate = dueDate;
