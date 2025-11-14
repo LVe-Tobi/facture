@@ -2171,7 +2171,7 @@
         
         // Configuration pour ImgBB (stockage d'images gratuit)
         const IMGBB_CONFIG = {
-            API_KEY: '4109561f6c596e04d748ea3bad198534', // Votre clé API ImgBB
+            API_KEY: '4109561f6c596e04d748ea3bad198534', // Clé API ImgBB
             UPLOAD_URL: 'https://api.imgbb.com/1/upload'
         };
         
@@ -2213,15 +2213,7 @@
                     
                 } catch (error) {
                     console.error('Erreur lors de l\'upload de l\'image:', error);
-                    
-                    // Fallback: stocker l'image en base64 dans la base de données
-                    return new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            resolve(e.target.result);
-                        };
-                        reader.readAsDataURL(file);
-                    });
+                    throw new Error('Impossible d\'uploader l\'image. Vérifiez votre connexion internet.');
                 } finally {
                     showLoading(false);
                 }
@@ -2243,9 +2235,6 @@
                 try {
                     showLoading(true);
                     
-                    // Simulation d'un délai de chargement
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    
                     // En production, utiliser l'API JSONBin.io
                     const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_CONFIG.BIN_ID}/latest`, {
                         headers: {
@@ -2262,15 +2251,7 @@
                     
                 } catch (error) {
                     console.error('Erreur lors du chargement des données:', error);
-                    showNotification('Erreur de connexion au serveur. Utilisation du mode hors ligne.', 'warning');
-                    
-                    // Fallback vers localStorage
-                    const storedData = localStorage.getItem('efacture_online_data');
-                    if (storedData) {
-                        return JSON.parse(storedData);
-                    } else {
-                        return this.getDefaultData();
-                    }
+                    throw new Error('Impossible de charger les données. Vérifiez votre connexion internet.');
                 } finally {
                     showLoading(false);
                 }
@@ -2280,9 +2261,6 @@
             async saveData(data) {
                 try {
                     showLoading(true);
-                    
-                    // Simulation d'un délai de sauvegarde
-                    await new Promise(resolve => setTimeout(resolve, 500));
                     
                     // En production, utiliser l'API JSONBin.io
                     const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_CONFIG.BIN_ID}`, {
@@ -2301,11 +2279,7 @@
                     return true;
                 } catch (error) {
                     console.error('Erreur lors de la sauvegarde des données:', error);
-                    showNotification('Erreur de connexion au serveur. Les données sont sauvegardées localement.', 'warning');
-                    
-                    // Fallback vers localStorage
-                    localStorage.setItem('efacture_online_data', JSON.stringify(data));
-                    return false;
+                    throw new Error('Impossible de sauvegarder les données. Vérifiez votre connexion internet.');
                 } finally {
                     showLoading(false);
                 }
@@ -2370,25 +2344,35 @@
             
             // Initialiser la base de données
             async init() {
-                const data = await OnlineStorage.loadData();
-                this.drivingSchools = data.drivingSchools || [];
-                this.candidates = data.candidates || [];
-                this.invoices = data.invoices || [];
-                this.payments = data.payments || [];
-                this.messages = data.messages || [];
+                try {
+                    const data = await OnlineStorage.loadData();
+                    this.drivingSchools = data.drivingSchools || [];
+                    this.candidates = data.candidates || [];
+                    this.invoices = data.invoices || [];
+                    this.payments = data.payments || [];
+                    this.messages = data.messages || [];
+                } catch (error) {
+                    console.error('Erreur lors de l\'initialisation de la base de données:', error);
+                    throw error;
+                }
             },
             
             // Sauvegarder les données
             async save() {
-                const data = {
-                    drivingSchools: this.drivingSchools,
-                    candidates: this.candidates,
-                    invoices: this.invoices,
-                    payments: this.payments,
-                    messages: this.messages
-                };
-                
-                await OnlineStorage.saveData(data);
+                try {
+                    const data = {
+                        drivingSchools: this.drivingSchools,
+                        candidates: this.candidates,
+                        invoices: this.invoices,
+                        payments: this.payments,
+                        messages: this.messages
+                    };
+                    
+                    await OnlineStorage.saveData(data);
+                } catch (error) {
+                    console.error('Erreur lors de la sauvegarde des données:', error);
+                    throw error;
+                }
             },
             
             // Générer un ID unique
@@ -2490,46 +2474,58 @@
         
         // Valider une auto-école
         async function validateSchool(schoolId) {
-            const school = database.drivingSchools.find(s => s.id === schoolId);
-            if (school) {
-                school.status = 'validated';
-                school.validatedAt = new Date().toISOString();
-                await database.save();
-                loadData();
-                
-                showNotification(`L'auto-école "${school.name}" a été validée avec succès !`);
+            try {
+                const school = database.drivingSchools.find(s => s.id === schoolId);
+                if (school) {
+                    school.status = 'validated';
+                    school.validatedAt = new Date().toISOString();
+                    await database.save();
+                    loadData();
+                    
+                    showNotification(`L'auto-école "${school.name}" a été validée avec succès !`);
+                }
+            } catch (error) {
+                showNotification(error.message, 'error');
             }
         }
 
         // Mettre en attente une auto-école
         async function setSchoolPending(schoolId) {
-            const school = database.drivingSchools.find(s => s.id === schoolId);
-            if (school) {
-                school.status = 'pending';
-                delete school.validatedAt;
-                await database.save();
-                loadData();
-                
-                showNotification(`L'auto-école "${school.name}" a été mise en attente !`);
+            try {
+                const school = database.drivingSchools.find(s => s.id === schoolId);
+                if (school) {
+                    school.status = 'pending';
+                    delete school.validatedAt;
+                    await database.save();
+                    loadData();
+                    
+                    showNotification(`L'auto-école "${school.name}" a été mise en attente !`);
+                }
+            } catch (error) {
+                showNotification(error.message, 'error');
             }
         }
         
         // Valider toutes les auto-écoles en attente
         async function validateAllPendingSchools() {
-            const pendingSchools = database.drivingSchools.filter(s => s.status === 'pending');
-            if (pendingSchools.length === 0) {
-                showNotification('Aucune auto-école en attente de validation.', 'warning');
-                return;
-            }
-            
-            if (confirm(`Voulez-vous vraiment valider ${pendingSchools.length} auto-école(s) en attente ?`)) {
-                pendingSchools.forEach(school => {
-                    school.status = 'validated';
-                    school.validatedAt = new Date().toISOString();
-                });
-                await database.save();
-                loadData();
-                showNotification(`${pendingSchools.length} auto-école(s) ont été validées avec succès !`);
+            try {
+                const pendingSchools = database.drivingSchools.filter(s => s.status === 'pending');
+                if (pendingSchools.length === 0) {
+                    showNotification('Aucune auto-école en attente de validation.', 'warning');
+                    return;
+                }
+                
+                if (confirm(`Voulez-vous vraiment valider ${pendingSchools.length} auto-école(s) en attente ?`)) {
+                    pendingSchools.forEach(school => {
+                        school.status = 'validated';
+                        school.validatedAt = new Date().toISOString();
+                    });
+                    await database.save();
+                    loadData();
+                    showNotification(`${pendingSchools.length} auto-école(s) ont été validées avec succès !`);
+                }
+            } catch (error) {
+                showNotification(error.message, 'error');
             }
         }
         
@@ -2676,29 +2672,37 @@
         
         // Marquer un message comme lu
         async function markAsRead(messageId) {
-            const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
-            const message = database.messages.find(m => m.id === messageId);
-            
-            if (message) {
-                if (!message.readBy) {
-                    message.readBy = [];
+            try {
+                const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
+                const message = database.messages.find(m => m.id === messageId);
+                
+                if (message) {
+                    if (!message.readBy) {
+                        message.readBy = [];
+                    }
+                    if (!message.readBy.includes(currentSchoolId)) {
+                        message.readBy.push(currentSchoolId);
+                        await database.save();
+                        loadSchoolMessages();
+                        showNotification('Message marqué comme lu');
+                    }
                 }
-                if (!message.readBy.includes(currentSchoolId)) {
-                    message.readBy.push(currentSchoolId);
-                    await database.save();
-                    loadSchoolMessages();
-                    showNotification('Message marqué comme lu');
-                }
+            } catch (error) {
+                showNotification(error.message, 'error');
             }
         }
         
         // Supprimer un message
         async function deleteMessage(messageId) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer ce message ?')) {
-                database.messages = database.messages.filter(m => m.id !== messageId);
-                await database.save();
-                loadAdminMessages();
-                showNotification('Message supprimé avec succès');
+            try {
+                if (confirm('Êtes-vous sûr de vouloir supprimer ce message ?')) {
+                    database.messages = database.messages.filter(m => m.id !== messageId);
+                    await database.save();
+                    loadAdminMessages();
+                    showNotification('Message supprimé avec succès');
+                }
+            } catch (error) {
+                showNotification(error.message, 'error');
             }
         }
         
@@ -2715,266 +2719,274 @@
         
         // Envoyer un message (admin vers auto-écoles)
         async function sendAdminMessage(recipient, subject, content) {
-            const messageData = {
-                id: database.generateId(),
-                sender: 'admin',
-                recipient: recipient,
-                subject: subject,
-                content: content,
-                date: new Date().toISOString(),
-                readBy: []
-            };
-            
-            database.messages.push(messageData);
-            await database.save();
-            
-            // Si le message est envoyé à toutes les auto-écoles, on le marque comme lu par l'admin
-            if (recipient === 'all') {
-                messageData.readBy.push('admin');
+            try {
+                const messageData = {
+                    id: database.generateId(),
+                    sender: 'admin',
+                    recipient: recipient,
+                    subject: subject,
+                    content: content,
+                    date: new Date().toISOString(),
+                    readBy: []
+                };
+                
+                database.messages.push(messageData);
+                await database.save();
+                
+                // Si le message est envoyé à toutes les auto-écoles, on le marque comme lu par l'admin
+                if (recipient === 'all') {
+                    messageData.readBy.push('admin');
+                }
+                
+                showNotification('Message envoyé avec succès !');
+                loadAdminMessages();
+            } catch (error) {
+                showNotification(error.message, 'error');
             }
-            
-            showNotification('Message envoyé avec succès !');
-            loadAdminMessages();
         }
         
         // Charger les données dans les tableaux
         async function loadData() {
-            const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
-            const currentSchool = database.drivingSchools.find(s => s.id === currentSchoolId);
-            
-            // Mettre à jour le logo dans la navbar
-            updateNavbarLogo(currentSchool);
-            
-            // Charger les auto-écoles pour l'admin
-            const adminSchoolsTableBody = document.getElementById('admin-schools-table-body');
-            const allSchoolsTableBody = document.getElementById('all-schools-table-body');
-            
-            if (database.drivingSchools.length === 0) {
-                adminSchoolsTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="text-center py-5">
-                            <div class="emoji mb-2" style="font-size: 3rem;">🏫</div>
-                            <h5>Aucune auto-école inscrite</h5>
-                            <p class="text-muted">Les auto-écoles apparaîtront ici après inscription</p>
-                        </td>
-                    </tr>
-                `;
-                allSchoolsTableBody.innerHTML = adminSchoolsTableBody.innerHTML;
-            } else {
-                const schoolsHTML = database.drivingSchools.map(school => {
-                    const statusClass = school.status === 'validated' ? 'status-validated' : 'status-waiting';
-                    const statusText = school.status === 'validated' ? 'Validé' : 'En attente';
-                    
-                    return `
+            try {
+                const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
+                const currentSchool = database.drivingSchools.find(s => s.id === currentSchoolId);
+                
+                // Mettre à jour le logo dans la navbar
+                updateNavbarLogo(currentSchool);
+                
+                // Charger les auto-écoles pour l'admin
+                const adminSchoolsTableBody = document.getElementById('admin-schools-table-body');
+                const allSchoolsTableBody = document.getElementById('all-schools-table-body');
+                
+                if (database.drivingSchools.length === 0) {
+                    adminSchoolsTableBody.innerHTML = `
                         <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    ${school.logo ? 
-                                        `<img src="${school.logo}" alt="Logo ${school.name}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; margin-right: 10px;">` : 
-                                        `<div class="user-avatar me-2" style="width: 30px; height: 30px; font-size: 0.8rem;">${school.name.substring(0, 2).toUpperCase()}</div>`
-                                    }
-                                    ${school.name}
-                                </div>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="emoji mb-2" style="font-size: 3rem;">🏫</div>
+                                <h5>Aucune auto-école inscrite</h5>
+                                <p class="text-muted">Les auto-écoles apparaîtront ici après inscription</p>
                             </td>
-                            <td>${school.owner}</td>
-                            <td>${school.email}</td>
-                            <td>${school.phone || 'Non renseigné'}</td>
-                            <td>${formatDate(school.registrationDate)}</td>
-                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        </tr>
+                    `;
+                    allSchoolsTableBody.innerHTML = adminSchoolsTableBody.innerHTML;
+                } else {
+                    const schoolsHTML = database.drivingSchools.map(school => {
+                        const statusClass = school.status === 'validated' ? 'status-validated' : 'status-waiting';
+                        const statusText = school.status === 'validated' ? 'Validé' : 'En attente';
+                        
+                        return `
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        ${school.logo ? 
+                                            `<img src="${school.logo}" alt="Logo ${school.name}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; margin-right: 10px;">` : 
+                                            `<div class="user-avatar me-2" style="width: 30px; height: 30px; font-size: 0.8rem;">${school.name.substring(0, 2).toUpperCase()}</div>`
+                                        }
+                                        ${school.name}
+                                    </div>
+                                </td>
+                                <td>${school.owner}</td>
+                                <td>${school.email}</td>
+                                <td>${school.phone || 'Non renseigné'}</td>
+                                <td>${formatDate(school.registrationDate)}</td>
+                                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-admin" onclick="viewSchoolDetails('${school.id}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    ${school.status === 'pending' ? `
+                                    <button class="btn btn-sm btn-success" onclick="validateSchool('${school.id}')">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    ` : `
+                                    <button class="btn btn-sm btn-warning" onclick="setSchoolPending('${school.id}')">
+                                        <i class="fas fa-clock"></i>
+                                    </button>
+                                    `}
+                                    <button class="btn btn-sm btn-danger" onclick="deleteSchool('${school.id}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                    
+                    adminSchoolsTableBody.innerHTML = schoolsHTML;
+                    allSchoolsTableBody.innerHTML = schoolsHTML;
+                }
+                
+                // Charger les candidats pour l'auto-école
+                const candidatesTableBody = document.getElementById('candidates-table-body');
+                const schoolCandidates = database.candidates.filter(c => c.schoolId === currentSchoolId);
+                
+                if (schoolCandidates.length === 0) {
+                    candidatesTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <div class="emoji mb-2" style="font-size: 3rem;">👥</div>
+                                <h5>Aucun candidat pour le moment</h5>
+                                <p class="text-muted">Ajoutez votre premier candidat pour commencer</p>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    candidatesTableBody.innerHTML = schoolCandidates.map(candidate => `
+                        <tr>
+                            <td>${candidate.lastName}</td>
+                            <td>${candidate.firstName}</td>
+                            <td>${candidate.email}</td>
+                            <td>${candidate.phone}</td>
+                            <td>${formatDate(candidate.registrationDate)}</td>
+                            <td><span class="status-badge status-validated">Actif</span></td>
                             <td>
-                                <button class="btn btn-sm btn-admin" onclick="viewSchoolDetails('${school.id}')">
+                                <button class="btn btn-sm btn-info" onclick="viewCandidate('${candidate.id}')">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                ${school.status === 'pending' ? `
-                                <button class="btn btn-sm btn-success" onclick="validateSchool('${school.id}')">
-                                    <i class="fas fa-check"></i>
+                                <button class="btn btn-sm btn-primary" onclick="editCandidate('${candidate.id}')">
+                                    <i class="fas fa-edit"></i>
                                 </button>
-                                ` : `
-                                <button class="btn btn-sm btn-warning" onclick="setSchoolPending('${school.id}')">
-                                    <i class="fas fa-clock"></i>
+                                <button class="btn btn-sm btn-success" onclick="createInvoiceForCandidate('${candidate.id}')">
+                                    <i class="fas fa-file-invoice"></i>
                                 </button>
-                                `}
-                                <button class="btn btn-sm btn-danger" onclick="deleteSchool('${school.id}')">
+                                <button class="btn btn-sm btn-danger" onclick="deleteCandidate('${candidate.id}')">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
                         </tr>
-                    `;
-                }).join('');
+                    `).join('');
+                }
                 
-                adminSchoolsTableBody.innerHTML = schoolsHTML;
-                allSchoolsTableBody.innerHTML = schoolsHTML;
-            }
-            
-            // Charger les candidats pour l'auto-école
-            const candidatesTableBody = document.getElementById('candidates-table-body');
-            const schoolCandidates = database.candidates.filter(c => c.schoolId === currentSchoolId);
-            
-            if (schoolCandidates.length === 0) {
-                candidatesTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center py-4">
-                            <div class="emoji mb-2" style="font-size: 3rem;">👥</div>
-                            <h5>Aucun candidat pour le moment</h5>
-                            <p class="text-muted">Ajoutez votre premier candidat pour commencer</p>
-                        </td>
-                    </tr>
-                `;
-            } else {
-                candidatesTableBody.innerHTML = schoolCandidates.map(candidate => `
-                    <tr>
-                        <td>${candidate.lastName}</td>
-                        <td>${candidate.firstName}</td>
-                        <td>${candidate.email}</td>
-                        <td>${candidate.phone}</td>
-                        <td>${formatDate(candidate.registrationDate)}</td>
-                        <td><span class="status-badge status-validated">Actif</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-info" onclick="viewCandidate('${candidate.id}')">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-primary" onclick="editCandidate('${candidate.id}')">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-sm btn-success" onclick="createInvoiceForCandidate('${candidate.id}')">
-                                <i class="fas fa-file-invoice"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteCandidate('${candidate.id}')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-            
-            // Charger les factures pour l'auto-école
-            const invoicesTableBody = document.getElementById('invoices-table-body');
-            const allInvoicesTableBody = document.getElementById('all-invoices-table-body');
-            const schoolInvoices = database.invoices.filter(i => i.schoolId === currentSchoolId);
-            
-            if (schoolInvoices.length === 0) {
-                invoicesTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="text-center py-5">
-                            <div class="emoji mb-2" style="font-size: 3rem;">📭</div>
-                            <h5>Aucune facture pour le moment</h5>
-                            <p class="text-muted">Créez votre première facture pour commencer</p>
-                            <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addInvoiceModal">
-                                <i class="fas fa-plus me-1"></i> Créer une Facture
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                allInvoicesTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="8" class="text-center py-5">
-                            <div class="emoji mb-2" style="font-size: 3rem;">📭</div>
-                            <h5>Aucune facture pour le moment</h5>
-                            <p class="text-muted">Créez votre première facture pour commencer</p>
-                            <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addInvoiceModal">
-                                <i class="fas fa-plus me-1"></i> Créer une Facture
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            } else {
-                const invoicesHTML = schoolInvoices.map(invoice => {
-                    const candidate = database.candidates.find(c => c.id === invoice.candidateId) || {};
-                    const statusClass = invoice.status === 'paid' ? 'status-paid' : 
-                                      invoice.status === 'validated' ? 'status-validated' : 'status-overdue';
-                    const statusText = invoice.status === 'paid' ? 'Payé' : 
-                                     invoice.status === 'validated' ? 'Validé' : 'En retard';
-                    
-                    const amountPaid = invoice.amountPaid || 0;
-                    const remainingAmount = invoice.totalAmount - amountPaid;
-                    
-                    return `
+                // Charger les factures pour l'auto-école
+                const invoicesTableBody = document.getElementById('invoices-table-body');
+                const allInvoicesTableBody = document.getElementById('all-invoices-table-body');
+                const schoolInvoices = database.invoices.filter(i => i.schoolId === currentSchoolId);
+                
+                if (schoolInvoices.length === 0) {
+                    invoicesTableBody.innerHTML = `
                         <tr>
-                            <td>${invoice.number}</td>
-                            <td>${formatDate(invoice.date)}</td>
-                            <td>${candidate.firstName} ${candidate.lastName}</td>
-                            <td>${formatCFA(invoice.totalAmount)}</td>
-                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-info" onclick="viewInvoice('${invoice.id}')">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="btn btn-sm btn-success" onclick="downloadInvoicePDF('${invoice.id}')">
-                                    <i class="fas fa-download"></i>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="emoji mb-2" style="font-size: 3rem;">📭</div>
+                                <h5>Aucune facture pour le moment</h5>
+                                <p class="text-muted">Créez votre première facture pour commencer</p>
+                                <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addInvoiceModal">
+                                    <i class="fas fa-plus me-1"></i> Créer une Facture
                                 </button>
                             </td>
                         </tr>
                     `;
-                }).join('');
-                
-                const allInvoicesHTML = schoolInvoices.map(invoice => {
-                    const candidate = database.candidates.find(c => c.id === invoice.candidateId) || {};
-                    const statusClass = invoice.status === 'paid' ? 'status-paid' : 
-                                      invoice.status === 'validated' ? 'status-validated' : 'status-overdue';
-                    const statusText = invoice.status === 'paid' ? 'Payé' : 
-                                     invoice.status === 'validated' ? 'Validé' : 'En retard';
-                    
-                    const amountPaid = invoice.amountPaid || 0;
-                    const remainingAmount = invoice.totalAmount - amountPaid;
-                    
-                    return `
+                    allInvoicesTableBody.innerHTML = `
                         <tr>
-                            <td>${invoice.number}</td>
-                            <td>${formatDate(invoice.date)}</td>
-                            <td>${candidate.firstName} ${candidate.lastName}</td>
-                            <td>${formatCFA(invoice.totalAmount)}</td>
-                            <td>${formatCFA(amountPaid)}</td>
-                            <td>${formatCFA(remainingAmount)}</td>
-                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-info" onclick="viewInvoice('${invoice.id}')">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="btn btn-sm btn-success" onclick="downloadInvoicePDF('${invoice.id}')">
-                                    <i class="fas fa-download"></i>
+                            <td colspan="8" class="text-center py-5">
+                                <div class="emoji mb-2" style="font-size: 3rem;">📭</div>
+                                <h5>Aucune facture pour le moment</h5>
+                                <p class="text-muted">Créez votre première facture pour commencer</p>
+                                <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addInvoiceModal">
+                                    <i class="fas fa-plus me-1"></i> Créer une Facture
                                 </button>
                             </td>
                         </tr>
                     `;
-                }).join('');
-                
-                invoicesTableBody.innerHTML = invoicesHTML;
-                allInvoicesTableBody.innerHTML = allInvoicesHTML;
-            }
-            
-            // Charger les paiements en attente
-            const pendingPaymentsList = document.getElementById('pending-payments-list');
-            const pendingInvoices = schoolInvoices.filter(i => i.status === 'validated');
-            
-            if (pendingInvoices.length === 0) {
-                pendingPaymentsList.innerHTML = `
-                    <div class="text-center py-4">
-                        <div class="emoji mb-2" style="font-size: 2rem;">✅</div>
-                        <p class="text-muted mb-0">Aucun paiement en attente</p>
-                    </div>
-                `;
-            } else {
-                pendingPaymentsList.innerHTML = pendingInvoices.map(invoice => {
-                    const candidate = database.candidates.find(c => c.id === invoice.candidateId) || {};
-                    const amountPaid = invoice.amountPaid || 0;
-                    const remainingAmount = invoice.totalAmount - amountPaid;
+                } else {
+                    const invoicesHTML = schoolInvoices.map(invoice => {
+                        const candidate = database.candidates.find(c => c.id === invoice.candidateId) || {};
+                        const statusClass = invoice.status === 'paid' ? 'status-paid' : 
+                                          invoice.status === 'validated' ? 'status-validated' : 'status-overdue';
+                        const statusText = invoice.status === 'paid' ? 'Payé' : 
+                                         invoice.status === 'validated' ? 'Validé' : 'En retard';
+                        
+                        const amountPaid = invoice.amountPaid || 0;
+                        const remainingAmount = invoice.totalAmount - amountPaid;
+                        
+                        return `
+                            <tr>
+                                <td>${invoice.number}</td>
+                                <td>${formatDate(invoice.date)}</td>
+                                <td>${candidate.firstName} ${candidate.lastName}</td>
+                                <td>${formatCFA(invoice.totalAmount)}</td>
+                                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" onclick="viewInvoice('${invoice.id}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-success" onclick="downloadInvoicePDF('${invoice.id}')">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
                     
-                    return `
-                        <div class="d-flex justify-content-between align-items-center mb-3 p-3 border rounded">
-                            <div>
-                                <h6 class="mb-1">${candidate.firstName} ${candidate.lastName}</h6>
-                                <small class="text-muted">${invoice.number} - ${formatCFA(remainingAmount)} restant</small>
-                            </div>
-                            <button class="btn btn-sm btn-success" onclick="markAsPaid('${invoice.id}')">
-                                <i class="fas fa-check"></i>
-                            </button>
+                    const allInvoicesHTML = schoolInvoices.map(invoice => {
+                        const candidate = database.candidates.find(c => c.id === invoice.candidateId) || {};
+                        const statusClass = invoice.status === 'paid' ? 'status-paid' : 
+                                          invoice.status === 'validated' ? 'status-validated' : 'status-overdue';
+                        const statusText = invoice.status === 'paid' ? 'Payé' : 
+                                         invoice.status === 'validated' ? 'Validé' : 'En retard';
+                        
+                        const amountPaid = invoice.amountPaid || 0;
+                        const remainingAmount = invoice.totalAmount - amountPaid;
+                        
+                        return `
+                            <tr>
+                                <td>${invoice.number}</td>
+                                <td>${formatDate(invoice.date)}</td>
+                                <td>${candidate.firstName} ${candidate.lastName}</td>
+                                <td>${formatCFA(invoice.totalAmount)}</td>
+                                <td>${formatCFA(amountPaid)}</td>
+                                <td>${formatCFA(remainingAmount)}</td>
+                                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" onclick="viewInvoice('${invoice.id}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-success" onclick="downloadInvoicePDF('${invoice.id}')">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                    
+                    invoicesTableBody.innerHTML = invoicesHTML;
+                    allInvoicesTableBody.innerHTML = allInvoicesHTML;
+                }
+                
+                // Charger les paiements en attente
+                const pendingPaymentsList = document.getElementById('pending-payments-list');
+                const pendingInvoices = schoolInvoices.filter(i => i.status === 'validated');
+                
+                if (pendingInvoices.length === 0) {
+                    pendingPaymentsList.innerHTML = `
+                        <div class="text-center py-4">
+                            <div class="emoji mb-2" style="font-size: 2rem;">✅</div>
+                            <p class="text-muted mb-0">Aucun paiement en attente</p>
                         </div>
                     `;
-                }).join('');
+                } else {
+                    pendingPaymentsList.innerHTML = pendingInvoices.map(invoice => {
+                        const candidate = database.candidates.find(c => c.id === invoice.candidateId) || {};
+                        const amountPaid = invoice.amountPaid || 0;
+                        const remainingAmount = invoice.totalAmount - amountPaid;
+                        
+                        return `
+                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 border rounded">
+                                <div>
+                                    <h6 class="mb-1">${candidate.firstName} ${candidate.lastName}</h6>
+                                    <small class="text-muted">${invoice.number} - ${formatCFA(remainingAmount)} restant</small>
+                                </div>
+                                <button class="btn btn-sm btn-success" onclick="markAsPaid('${invoice.id}')">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </div>
+                        `;
+                    }).join('');
+                }
+                
+                // Mettre à jour les statistiques
+                updateStatistics();
+            } catch (error) {
+                showNotification(error.message, 'error');
             }
-            
-            // Mettre à jour les statistiques
-            updateStatistics();
         }
         
         // Voir les détails d'une auto-école
@@ -2998,17 +3010,21 @@
         
         // Supprimer une auto-école
         async function deleteSchool(schoolId) {
-            const school = database.drivingSchools.find(s => s.id === schoolId);
-            if (school && confirm(`Êtes-vous sûr de vouloir supprimer l'auto-école "${school.name}" ?`)) {
-                // Supprimer le logo s'il existe
-                if (school.logo && school.logo.startsWith('http')) {
-                    await ImageStorage.deleteImage(school.logo);
+            try {
+                const school = database.drivingSchools.find(s => s.id === schoolId);
+                if (school && confirm(`Êtes-vous sûr de vouloir supprimer l'auto-école "${school.name}" ?`)) {
+                    // Supprimer le logo s'il existe
+                    if (school.logo && school.logo.startsWith('http')) {
+                        await ImageStorage.deleteImage(school.logo);
+                    }
+                    
+                    database.drivingSchools = database.drivingSchools.filter(s => s.id !== schoolId);
+                    await database.save();
+                    loadData();
+                    showNotification('Auto-école supprimée avec succès !');
                 }
-                
-                database.drivingSchools = database.drivingSchools.filter(s => s.id !== schoolId);
-                await database.save();
-                loadData();
-                showNotification('Auto-école supprimée avec succès !');
+            } catch (error) {
+                showNotification(error.message, 'error');
             }
         }
         
@@ -3224,13 +3240,17 @@
         
         // Marquer une facture comme payée
         async function markAsPaid(invoiceId) {
-            const invoice = database.invoices.find(i => i.id === invoiceId);
-            if (invoice) {
-                invoice.status = 'paid';
-                invoice.amountPaid = invoice.totalAmount;
-                await database.save();
-                loadData();
-                showNotification(`Facture ${invoice.number} marquée comme payée !`);
+            try {
+                const invoice = database.invoices.find(i => i.id === invoiceId);
+                if (invoice) {
+                    invoice.status = 'paid';
+                    invoice.amountPaid = invoice.totalAmount;
+                    await database.save();
+                    loadData();
+                    showNotification(`Facture ${invoice.number} marquée comme payée !`);
+                }
+            } catch (error) {
+                showNotification(error.message, 'error');
             }
         }
         
@@ -3277,12 +3297,16 @@
         
         // Supprimer un candidat
         async function deleteCandidate(candidateId) {
-            const candidate = database.candidates.find(c => c.id === candidateId);
-            if (candidate && confirm(`Êtes-vous sûr de vouloir supprimer le candidat ${candidate.firstName} ${candidate.lastName} ?`)) {
-                database.candidates = database.candidates.filter(c => c.id !== candidateId);
-                await database.save();
-                loadData();
-                showNotification('Candidat supprimé avec succès !');
+            try {
+                const candidate = database.candidates.find(c => c.id === candidateId);
+                if (candidate && confirm(`Êtes-vous sûr de vouloir supprimer le candidat ${candidate.firstName} ${candidate.lastName} ?`)) {
+                    database.candidates = database.candidates.filter(c => c.id !== candidateId);
+                    await database.save();
+                    loadData();
+                    showNotification('Candidat supprimé avec succès !');
+                }
+            } catch (error) {
+                showNotification(error.message, 'error');
             }
         }
         
@@ -3295,7 +3319,7 @@
             document.getElementById('invoiceCandidate').value = candidateId;
             
             // Ouvrir le modal de création de facture
-            const modal = new bootstrap.Modal(document.getElementById('addInvoiceModal'));
+            const modal = bootstrap.Modal(document.getElementById('addInvoiceModal'));
             modal.show();
         }
         
@@ -3355,52 +3379,36 @@
                 showNotification('Logo uploadé avec succès !');
             } catch (error) {
                 console.error('Erreur lors de l\'upload du logo:', error);
-                showNotification('Erreur lors de l\'upload du logo. Utilisation du stockage local.', 'error');
-                
-                // Fallback: stocker l'image en base64
-                const reader = new FileReader();
-                reader.onload = async function(e) {
-                    const logoPreview = document.getElementById('logo-preview');
-                    const logoPreviewContainer = document.getElementById('logo-preview-container');
-                    
-                    logoPreview.src = e.target.result;
-                    logoPreviewContainer.style.display = 'block';
-                    
-                    // Sauvegarder le logo
-                    const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
-                    const school = database.drivingSchools.find(s => s.id === currentSchoolId);
-                    if (school) {
-                        school.logo = e.target.result;
-                        await database.save();
-                        updateNavbarLogo(school);
-                    }
-                };
-                reader.readAsDataURL(file);
+                showNotification(error.message, 'error');
             }
         }
         
         async function removeLogo() {
-            const logoPreviewContainer = document.getElementById('logo-preview-container');
-            const logoUpload = document.getElementById('logo-upload');
-            
-            logoPreviewContainer.style.display = 'none';
-            logoUpload.value = '';
-            
-            // Supprimer le logo
-            const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
-            const school = database.drivingSchools.find(s => s.id === currentSchoolId);
-            if (school) {
-                // Si le logo est stocké en ligne, essayer de le supprimer
-                if (school.logo && school.logo.startsWith('http')) {
-                    await ImageStorage.deleteImage(school.logo);
+            try {
+                const logoPreviewContainer = document.getElementById('logo-preview-container');
+                const logoUpload = document.getElementById('logo-upload');
+                
+                logoPreviewContainer.style.display = 'none';
+                logoUpload.value = '';
+                
+                // Supprimer le logo
+                const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
+                const school = database.drivingSchools.find(s => s.id === currentSchoolId);
+                if (school) {
+                    // Si le logo est stocké en ligne, essayer de le supprimer
+                    if (school.logo && school.logo.startsWith('http')) {
+                        await ImageStorage.deleteImage(school.logo);
+                    }
+                    
+                    delete school.logo;
+                    await database.save();
+                    updateNavbarLogo(school);
                 }
                 
-                delete school.logo;
-                await database.save();
-                updateNavbarLogo(school);
+                showNotification('Logo supprimé avec succès');
+            } catch (error) {
+                showNotification(error.message, 'error');
             }
-            
-            showNotification('Logo supprimé avec succès');
         }
 
         // =============================================
@@ -3447,39 +3455,43 @@
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             
-            // Simulation de connexion
-            if (userType === 'admin') {
-                // Connexion admin
-                if (email === 'admin@efacture.com' && password === 'admin123') {
-                    document.getElementById('login-page').classList.remove('active');
-                    document.getElementById('admin-app').classList.add('active');
-                    await loadData();
-                    loadAdminMessages();
-                    loadRecipients();
-                    showNotification('Connexion administrateur réussie !');
-                } else {
-                    showNotification('Identifiants administrateur incorrects', 'error');
-                }
-            } else {
-                // Connexion auto-école
-                const school = database.drivingSchools.find(s => s.email === email);
-                if (school) {
-                    if (school.status === 'pending') {
-                        showNotification('Votre compte est en attente de validation par l\'administrateur', 'warning');
-                        return;
+            try {
+                // Simulation de connexion
+                if (userType === 'admin') {
+                    // Connexion admin
+                    if (email === 'admin@efacture.com' && password === 'admin123') {
+                        document.getElementById('login-page').classList.remove('active');
+                        document.getElementById('admin-app').classList.add('active');
+                        await loadData();
+                        loadAdminMessages();
+                        loadRecipients();
+                        showNotification('Connexion administrateur réussie !');
+                    } else {
+                        showNotification('Identifiants administrateur incorrects', 'error');
                     }
-                    
-                    localStorage.setItem('currentSchoolId', school.id);
-                    document.getElementById('current-school-name').textContent = school.name;
-                    document.getElementById('login-page').classList.remove('active');
-                    document.getElementById('main-app').classList.add('active');
-                    await loadData();
-                    loadCandidatesForInvoice();
-                    loadSchoolMessages();
-                    showNotification(`Connexion réussie ! Bienvenue ${school.name}`);
                 } else {
-                    showNotification('Aucune auto-école trouvée avec cet email', 'error');
+                    // Connexion auto-école
+                    const school = database.drivingSchools.find(s => s.email === email);
+                    if (school) {
+                        if (school.status === 'pending') {
+                            showNotification('Votre compte est en attente de validation par l\'administrateur', 'warning');
+                            return;
+                        }
+                        
+                        localStorage.setItem('currentSchoolId', school.id);
+                        document.getElementById('current-school-name').textContent = school.name;
+                        document.getElementById('login-page').classList.remove('active');
+                        document.getElementById('main-app').classList.add('active');
+                        await loadData();
+                        loadCandidatesForInvoice();
+                        loadSchoolMessages();
+                        showNotification(`Connexion réussie ! Bienvenue ${school.name}`);
+                    } else {
+                        showNotification('Aucune auto-école trouvée avec cet email', 'error');
+                    }
                 }
+            } catch (error) {
+                showNotification(error.message, 'error');
             }
         });
 
@@ -3495,27 +3507,31 @@
                 return;
             }
             
-            const schoolData = {
-                id: database.generateId(),
-                name: document.getElementById('school-name').value,
-                owner: document.getElementById('owner-name').value,
-                email: document.getElementById('register-email').value,
-                phone: document.getElementById('register-phone').value,
-                address: document.getElementById('school-address').value,
-                ifu: document.getElementById('school-ifu').value,
-                registrationDate: new Date().toISOString(),
-                status: 'pending'
-            };
-            
-            database.drivingSchools.push(schoolData);
-            await database.save();
-            
-            showNotification('Inscription réussie ! Votre compte sera activé après validation par notre équipe.');
-            document.getElementById('register-page').classList.remove('active');
-            document.getElementById('login-page').classList.add('active');
-            
-            // Réinitialiser le formulaire
-            document.getElementById('register-form').reset();
+            try {
+                const schoolData = {
+                    id: database.generateId(),
+                    name: document.getElementById('school-name').value,
+                    owner: document.getElementById('owner-name').value,
+                    email: document.getElementById('register-email').value,
+                    phone: document.getElementById('register-phone').value,
+                    address: document.getElementById('school-address').value,
+                    ifu: document.getElementById('school-ifu').value,
+                    registrationDate: new Date().toISOString(),
+                    status: 'pending'
+                };
+                
+                database.drivingSchools.push(schoolData);
+                await database.save();
+                
+                showNotification('Inscription réussie ! Votre compte sera activé après validation par notre équipe.');
+                document.getElementById('register-page').classList.remove('active');
+                document.getElementById('login-page').classList.add('active');
+                
+                // Réinitialiser le formulaire
+                document.getElementById('register-form').reset();
+            } catch (error) {
+                showNotification(error.message, 'error');
+            }
         });
 
         // Gestion de la déconnexion
@@ -3578,153 +3594,165 @@
 
         // Gestion de l'ajout de candidat
         document.getElementById('save-candidate-btn').addEventListener('click', async function() {
-            const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
-            
-            const candidateData = {
-                id: database.generateId(),
-                schoolId: currentSchoolId,
-                lastName: document.getElementById('candidateLastName').value,
-                firstName: document.getElementById('candidateFirstName').value,
-                email: document.getElementById('candidateEmail').value,
-                phone: document.getElementById('candidatePhone').value,
-                address: document.getElementById('candidateAddress').value,
-                registrationDate: new Date().toISOString()
-            };
-            
-            database.candidates.push(candidateData);
-            await database.save();
-            
-            // Fermer le modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('addCandidateModal'));
-            modal.hide();
-            
-            // Recharger les données
-            await loadData();
-            loadCandidatesForInvoice();
-            
-            // Réinitialiser le formulaire
-            document.getElementById('add-candidate-form').reset();
-            
-            showNotification('Candidat ajouté avec succès !');
-        });
-
-        // Gestion de la mise à jour de candidat
-        document.getElementById('update-candidate-btn').addEventListener('click', async function() {
-            const candidateId = document.getElementById('edit-candidate-id').value;
-            const candidate = database.candidates.find(c => c.id === candidateId);
-            
-            if (candidate) {
-                candidate.lastName = document.getElementById('edit-candidateLastName').value;
-                candidate.firstName = document.getElementById('edit-candidateFirstName').value;
-                candidate.email = document.getElementById('edit-candidateEmail').value;
-                candidate.phone = document.getElementById('edit-candidatePhone').value;
-                candidate.address = document.getElementById('edit-candidateAddress').value;
+            try {
+                const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
                 
+                const candidateData = {
+                    id: database.generateId(),
+                    schoolId: currentSchoolId,
+                    lastName: document.getElementById('candidateLastName').value,
+                    firstName: document.getElementById('candidateFirstName').value,
+                    email: document.getElementById('candidateEmail').value,
+                    phone: document.getElementById('candidatePhone').value,
+                    address: document.getElementById('candidateAddress').value,
+                    registrationDate: new Date().toISOString()
+                };
+                
+                database.candidates.push(candidateData);
                 await database.save();
                 
                 // Fermer le modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('editCandidateModal'));
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addCandidateModal'));
                 modal.hide();
                 
                 // Recharger les données
                 await loadData();
                 loadCandidatesForInvoice();
                 
-                showNotification('Candidat modifié avec succès !');
+                // Réinitialiser le formulaire
+                document.getElementById('add-candidate-form').reset();
+                
+                showNotification('Candidat ajouté avec succès !');
+            } catch (error) {
+                showNotification(error.message, 'error');
+            }
+        });
+
+        // Gestion de la mise à jour de candidat
+        document.getElementById('update-candidate-btn').addEventListener('click', async function() {
+            try {
+                const candidateId = document.getElementById('edit-candidate-id').value;
+                const candidate = database.candidates.find(c => c.id === candidateId);
+                
+                if (candidate) {
+                    candidate.lastName = document.getElementById('edit-candidateLastName').value;
+                    candidate.firstName = document.getElementById('edit-candidateFirstName').value;
+                    candidate.email = document.getElementById('edit-candidateEmail').value;
+                    candidate.phone = document.getElementById('edit-candidatePhone').value;
+                    candidate.address = document.getElementById('edit-candidateAddress').value;
+                    
+                    await database.save();
+                    
+                    // Fermer le modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editCandidateModal'));
+                    modal.hide();
+                    
+                    // Recharger les données
+                    await loadData();
+                    loadCandidatesForInvoice();
+                    
+                    showNotification('Candidat modifié avec succès !');
+                }
+            } catch (error) {
+                showNotification(error.message, 'error');
             }
         });
 
         // Gestion de l'ajout de facture
         document.getElementById('save-invoice-btn').addEventListener('click', async function() {
-            const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
-            const candidateId = document.getElementById('invoiceCandidate').value;
-            const invoiceDate = document.getElementById('invoiceDate').value;
-            const dueDate = document.getElementById('invoiceDueDate').value;
-            const paymentMethod = document.getElementById('invoicePayment').value;
-            const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
-            
-            // Validation des champs
-            if (!candidateId) {
-                showNotification('Veuillez sélectionner un candidat', 'error');
-                return;
-            }
-            
-            if (!invoiceDate || !dueDate) {
-                showNotification('Veuillez renseigner les dates', 'error');
-                return;
-            }
-            
-            if (!paymentMethod) {
-                showNotification('Veuillez sélectionner une méthode de paiement', 'error');
-                return;
-            }
-            
-            // Récupérer les articles de la facture
-            const items = [];
-            let hasValidItems = false;
-            
-            document.querySelectorAll('#invoiceItems tr').forEach(row => {
-                const description = row.querySelector('.item-description').value;
-                const quantity = parseFloat(row.querySelector('.quantity').value) || 0;
-                const price = parseFloat(row.querySelector('.price').value) || 0;
+            try {
+                const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
+                const candidateId = document.getElementById('invoiceCandidate').value;
+                const invoiceDate = document.getElementById('invoiceDate').value;
+                const dueDate = document.getElementById('invoiceDueDate').value;
+                const paymentMethod = document.getElementById('invoicePayment').value;
+                const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
                 
-                if (description && quantity > 0 && price > 0) {
-                    items.push({
-                        description: description,
-                        quantity: quantity,
-                        price: price,
-                        total: quantity * price
-                    });
-                    hasValidItems = true;
+                // Validation des champs
+                if (!candidateId) {
+                    showNotification('Veuillez sélectionner un candidat', 'error');
+                    return;
                 }
-            });
-            
-            if (!hasValidItems) {
-                showNotification('Veuillez ajouter au moins un article valide', 'error');
-                return;
+                
+                if (!invoiceDate || !dueDate) {
+                    showNotification('Veuillez renseigner les dates', 'error');
+                    return;
+                }
+                
+                if (!paymentMethod) {
+                    showNotification('Veuillez sélectionner une méthode de paiement', 'error');
+                    return;
+                }
+                
+                // Récupérer les articles de la facture
+                const items = [];
+                let hasValidItems = false;
+                
+                document.querySelectorAll('#invoiceItems tr').forEach(row => {
+                    const description = row.querySelector('.item-description').value;
+                    const quantity = parseFloat(row.querySelector('.quantity').value) || 0;
+                    const price = parseFloat(row.querySelector('.price').value) || 0;
+                    
+                    if (description && quantity > 0 && price > 0) {
+                        items.push({
+                            description: description,
+                            quantity: quantity,
+                            price: price,
+                            total: quantity * price
+                        });
+                        hasValidItems = true;
+                    }
+                });
+                
+                if (!hasValidItems) {
+                    showNotification('Veuillez ajouter au moins un article valide', 'error');
+                    return;
+                }
+                
+                const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace(/[^0-9.]/g, '')) || 0;
+                const taxAmount = parseFloat(document.getElementById('taxAmount').textContent.replace(/[^0-9.]/g, '')) || 0;
+                const totalAmount = parseFloat(document.getElementById('totalAmount').textContent.replace(/[^0-9.]/g, '')) || 0;
+                
+                // Vérifier que le montant payé n'est pas supérieur au total
+                if (amountPaid > totalAmount) {
+                    showNotification('Le montant payé ne peut pas être supérieur au total de la facture', 'error');
+                    return;
+                }
+                
+                const invoiceData = {
+                    id: database.generateId(),
+                    schoolId: currentSchoolId,
+                    candidateId: candidateId,
+                    number: 'INV-' + database.generateId().substring(0, 8).toUpperCase(),
+                    date: invoiceDate,
+                    dueDate: dueDate,
+                    items: items,
+                    subtotal: subtotal,
+                    taxAmount: taxAmount,
+                    totalAmount: totalAmount,
+                    amountPaid: amountPaid,
+                    status: amountPaid >= totalAmount ? 'paid' : 'validated',
+                    paymentMethod: paymentMethod
+                };
+                
+                database.invoices.push(invoiceData);
+                await database.save();
+                
+                // Fermer le modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addInvoiceModal'));
+                modal.hide();
+                
+                // Recharger les données
+                await loadData();
+                
+                // Réinitialiser le formulaire
+                document.getElementById('add-invoice-form').reset();
+                updateInvoiceTotals();
+                
+                showNotification('Facture créée avec succès !');
+            } catch (error) {
+                showNotification(error.message, 'error');
             }
-            
-            const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace(/[^0-9.]/g, '')) || 0;
-            const taxAmount = parseFloat(document.getElementById('taxAmount').textContent.replace(/[^0-9.]/g, '')) || 0;
-            const totalAmount = parseFloat(document.getElementById('totalAmount').textContent.replace(/[^0-9.]/g, '')) || 0;
-            
-            // Vérifier que le montant payé n'est pas supérieur au total
-            if (amountPaid > totalAmount) {
-                showNotification('Le montant payé ne peut pas être supérieur au total de la facture', 'error');
-                return;
-            }
-            
-            const invoiceData = {
-                id: database.generateId(),
-                schoolId: currentSchoolId,
-                candidateId: candidateId,
-                number: 'INV-' + database.generateId().substring(0, 8).toUpperCase(),
-                date: invoiceDate,
-                dueDate: dueDate,
-                items: items,
-                subtotal: subtotal,
-                taxAmount: taxAmount,
-                totalAmount: totalAmount,
-                amountPaid: amountPaid,
-                status: amountPaid >= totalAmount ? 'paid' : 'validated',
-                paymentMethod: paymentMethod
-            };
-            
-            database.invoices.push(invoiceData);
-            await database.save();
-            
-            // Fermer le modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('addInvoiceModal'));
-            modal.hide();
-            
-            // Recharger les données
-            await loadData();
-            
-            // Réinitialiser le formulaire
-            document.getElementById('add-invoice-form').reset();
-            updateInvoiceTotals();
-            
-            showNotification('Facture créée avec succès !');
         });
 
         // Gestion des articles de facture
@@ -3812,21 +3840,25 @@
         // Gestion des paramètres auto-école
         document.getElementById('school-settings-form').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
-            const school = database.drivingSchools.find(s => s.id === currentSchoolId);
-            
-            if (school) {
-                school.name = document.getElementById('settings-school-name').value;
-                school.owner = document.getElementById('settings-owner-name').value;
-                school.email = document.getElementById('settings-school-email').value;
-                school.phone = document.getElementById('settings-school-phone').value;
-                school.address = document.getElementById('settings-school-address').value;
-                school.ifu = document.getElementById('settings-school-ifu').value;
+            try {
+                const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
+                const school = database.drivingSchools.find(s => s.id === currentSchoolId);
                 
-                await database.save();
-                document.getElementById('current-school-name').textContent = school.name;
-                updateNavbarLogo(school);
-                showNotification('Paramètres enregistrés avec succès !');
+                if (school) {
+                    school.name = document.getElementById('settings-school-name').value;
+                    school.owner = document.getElementById('settings-owner-name').value;
+                    school.email = document.getElementById('settings-school-email').value;
+                    school.phone = document.getElementById('settings-school-phone').value;
+                    school.address = document.getElementById('settings-school-address').value;
+                    school.ifu = document.getElementById('settings-school-ifu').value;
+                    
+                    await database.save();
+                    document.getElementById('current-school-name').textContent = school.name;
+                    updateNavbarLogo(school);
+                    showNotification('Paramètres enregistrés avec succès !');
+                }
+            } catch (error) {
+                showNotification(error.message, 'error');
             }
         });
 
@@ -3848,10 +3880,14 @@
                 return;
             }
             
-            await sendAdminMessage(recipient, subject, content);
-            
-            // Réinitialiser le formulaire
-            document.getElementById('admin-message-form').reset();
+            try {
+                await sendAdminMessage(recipient, subject, content);
+                
+                // Réinitialiser le formulaire
+                document.getElementById('admin-message-form').reset();
+            } catch (error) {
+                showNotification(error.message, 'error');
+            }
         });
 
         // Gestion des paramètres admin
@@ -3902,26 +3938,30 @@
 
         // Initialiser l'application
         document.addEventListener('DOMContentLoaded', async function() {
-            // Initialiser la base de données
-            await database.init();
-            
-            // Charger les données si nécessaire
-            if (database.drivingSchools.length === 0) {
-                // Ajouter des données d'exemple
-                const sampleSchool = {
-                    id: 'sample-school',
-                    name: 'Auto-École Excellence',
-                    owner: 'Jean Martin',
-                    email: 'contact@excellence-auto.fr',
-                    phone: '01 23 45 67 89',
-                    address: '123 Avenue de la République, 75011 Paris',
-                    ifu: 'IFU123456789',
-                    registrationDate: new Date().toISOString(),
-                    status: 'validated'
-                };
+            try {
+                // Initialiser la base de données
+                await database.init();
                 
-                database.drivingSchools.push(sampleSchool);
-                await database.save();
+                // Charger les données si nécessaire
+                if (database.drivingSchools.length === 0) {
+                    // Ajouter des données d'exemple
+                    const sampleSchool = {
+                        id: 'sample-school',
+                        name: 'Auto-École Excellence',
+                        owner: 'Jean Martin',
+                        email: 'contact@excellence-auto.fr',
+                        phone: '01 23 45 67 89',
+                        address: '123 Avenue de la République, 75011 Paris',
+                        ifu: 'IFU123456789',
+                        registrationDate: new Date().toISOString(),
+                        status: 'validated'
+                    };
+                    
+                    database.drivingSchools.push(sampleSchool);
+                    await database.save();
+                }
+            } catch (error) {
+                showNotification('Erreur lors du chargement de l\'application: ' + error.message, 'error');
             }
         });
     </script>
