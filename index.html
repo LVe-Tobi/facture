@@ -1978,6 +1978,18 @@
                                     </select>
                                 </div>
                                 <div class="mb-3">
+                                    <label for="licenseCategory" class="form-label">Catégorie de Permis</label>
+                                    <select class="form-select" id="licenseCategory" required>
+                                        <option value="">Sélectionnez une catégorie</option>
+                                        <option value="Permis A">Permis A (Moto)</option>
+                                        <option value="Permis B">Permis B (Voiture)</option>
+                                        <option value="Permis C">Permis C (Poids lourd)</option>
+                                        <option value="Permis D">Permis D (Bus)</option>
+                                        <option value="Permis BE">Permis BE (Remorque)</option>
+                                        <option value="Permis AM">Permis AM (Scooter)</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
                                     <label for="invoiceDate" class="form-label">Date de facturation</label>
                                     <input type="date" class="form-control" id="invoiceDate" required>
                                 </div>
@@ -1991,10 +2003,9 @@
                                     <label for="invoicePayment" class="form-label">Méthode de paiement</label>
                                     <select class="form-select" id="invoicePayment" required>
                                         <option value="">Sélectionnez une méthode</option>
-                                        <option>Virement bancaire</option>
-                                        <option>Carte bancaire</option>
-                                        <option>Espèces</option>
-                                        <option>Chèque</option>
+                                        <option value="Virement bancaire">Virement bancaire</option>
+                                        <option value="Espèces">Espèces</option>
+                                        <option value="Mobile Money (MoMo)">Mobile Money (MoMo)</option>
                                     </select>
                                 </div>
                             </div>
@@ -2032,7 +2043,7 @@
                                 <tbody id="invoiceItems">
                                     <tr>
                                         <td>
-                                            <input type="text" class="form-control item-description" placeholder="Description de l'article" required>
+                                            <input type="text" class="form-control item-description" placeholder="Ex: Frais d'inscription" required>
                                         </td>
                                         <td>
                                             <input type="number" class="form-control quantity" value="1" min="1" required>
@@ -2171,11 +2182,8 @@
         
         // ⚠️ CONFIGURATION GITHUB - À MODIFIER ⚠️
         const GITHUB_CONFIG = {
-            // REMPLACEZ 'ton-nom-utilisateur' par votre vrai nom d'utilisateur GitHub
             USERNAME: 'LVe-Tobi',
-            // REMPLACEZ si vous avez utilisé un nom différent pour le dépôt
             REPO: 'efacture-data',
-            // REMPLACEZ par le token que vous avez copié
             TOKEN: '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',
             DATA_FILE: 'data.json'
         };
@@ -3018,6 +3026,7 @@
                             <p class="mb-0"><strong>N° ${invoice.number}</strong></p>
                             <p class="mb-0">Date: ${formatDate(invoice.date)}</p>
                             <p class="mb-0">Échéance: ${formatDate(invoice.dueDate)}</p>
+                            <p class="mb-0">Catégorie: ${invoice.licenseCategory || 'Non spécifiée'}</p>
                         </div>
                         <div class="pdf-company-info">
                             ${school.logo ? `<img src="${school.logo}" alt="Logo ${school.name}" class="school-logo mb-2" style="max-width: 120px; max-height: 60px;">` : ''}
@@ -3564,6 +3573,7 @@
             try {
                 const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
                 const candidateId = document.getElementById('invoiceCandidate').value;
+                const licenseCategory = document.getElementById('licenseCategory').value;
                 const invoiceDate = document.getElementById('invoiceDate').value;
                 const dueDate = document.getElementById('invoiceDueDate').value;
                 const paymentMethod = document.getElementById('invoicePayment').value;
@@ -3571,6 +3581,11 @@
                 
                 if (!candidateId) {
                     showNotification('Veuillez sélectionner un candidat', 'error');
+                    return;
+                }
+                
+                if (!licenseCategory) {
+                    showNotification('Veuillez sélectionner une catégorie de permis', 'error');
                     return;
                 }
                 
@@ -3621,6 +3636,7 @@
                     id: database.generateId(),
                     schoolId: currentSchoolId,
                     candidateId: candidateId,
+                    licenseCategory: licenseCategory,
                     number: 'INV-' + database.generateId().substring(0, 8).toUpperCase(),
                     date: invoiceDate,
                     dueDate: dueDate,
