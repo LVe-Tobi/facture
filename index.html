@@ -10,7 +10,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        /* Styles CSS existants conservés */
         :root {
             --primary: #4361ee;
             --primary-dark: #3a56d4;
@@ -882,75 +881,77 @@
             height: 3rem;
         }
 
-        /* Styles spécifiques pour le PDF optimisé */
+        /* Styles spécifiques pour le PDF optimisé en A4 vertical */
         .pdf-optimized {
             width: 210mm;
             min-height: 297mm;
-            padding: 12mm;
+            padding: 15mm;
             margin: 0 auto;
             background: white;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             font-family: 'Inter', Arial, sans-serif;
-            font-size: 9pt;
-            line-height: 1.2;
+            font-size: 10pt;
+            line-height: 1.3;
+            box-sizing: border-box;
         }
 
         .pdf-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
             border-bottom: 2px solid #4361ee;
-            padding-bottom: 8px;
+            padding-bottom: 10px;
         }
 
         .pdf-title {
-            font-size: 18pt;
+            font-size: 20pt;
             font-weight: bold;
             color: #4361ee;
+            margin-bottom: 5px;
         }
 
         .pdf-company-info {
             text-align: right;
-            font-size: 8pt;
+            font-size: 9pt;
         }
 
         .pdf-details {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 12px;
+            gap: 15px;
+            margin-bottom: 15px;
         }
 
         .pdf-items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 12px;
-            font-size: 8pt;
+            margin-bottom: 15px;
+            font-size: 9pt;
         }
 
         .pdf-items-table th {
             background: #4361ee;
             color: white;
-            padding: 6px;
+            padding: 8px;
             text-align: left;
             font-weight: bold;
         }
 
         .pdf-items-table td {
-            padding: 6px;
+            padding: 8px;
             border-bottom: 1px solid #ddd;
         }
 
         .pdf-totals {
             width: 100%;
-            max-width: 200px;
+            max-width: 250px;
             margin-left: auto;
-            font-size: 8pt;
+            font-size: 9pt;
         }
 
         .pdf-totals tr td {
-            padding: 3px 0;
+            padding: 4px 0;
         }
 
         .pdf-totals tr:last-child {
@@ -959,40 +960,23 @@
         }
 
         .pdf-footer {
-            margin-top: 15px;
+            margin-top: 20px;
             text-align: center;
             color: #666;
-            font-size: 7pt;
+            font-size: 8pt;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
         }
         
         /* Styles pour les petits écrans */
         @media (max-width: 576px) {
-            .invoice-preview {
-                padding: 0.75rem;
-            }
-            
-            .invoice-header {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .invoice-title {
-                font-size: 1.1rem;
-            }
-            
-            .invoice-items th,
-            .invoice-items td {
-                padding: 6px 4px;
-                font-size: 0.8rem;
-            }
-            
             .pdf-optimized {
-                padding: 8mm;
-                font-size: 8pt;
+                padding: 10mm;
+                font-size: 9pt;
             }
             
             .pdf-title {
-                font-size: 14pt;
+                font-size: 16pt;
             }
         }
     </style>
@@ -3067,7 +3051,7 @@
                             <p class="mb-0">Échéance: ${formatDate(invoice.dueDate)}</p>
                         </div>
                         <div class="pdf-company-info">
-                            ${school.logo ? `<img src="${school.logo}" alt="Logo ${school.name}" class="school-logo mb-2">` : ''}
+                            ${school.logo ? `<img src="${school.logo}" alt="Logo ${school.name}" class="school-logo mb-2" style="max-width: 120px; max-height: 60px;">` : ''}
                             <h4>${school.name || 'Auto-École'}</h4>
                             <p class="mb-0">${school.address || ''}</p>
                             <p class="mb-0">${school.phone || ''}</p>
@@ -3097,14 +3081,16 @@
                         <thead>
                             <tr>
                                 <th style="width: 50%;">Description</th>
+                                <th style="width: 15%;">Quantité</th>
                                 <th style="width: 20%;">Prix unitaire</th>
-                                <th style="width: 30%;">Total</th>
+                                <th style="width: 15%;">Total</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${invoice.items.map(item => `
                                 <tr>
                                     <td>${item.description}</td>
+                                    <td>${item.quantity}</td>
                                     <td>${formatCFA(item.price)}</td>
                                     <td>${formatCFA(item.total)}</td>
                                 </tr>
@@ -3169,19 +3155,19 @@
                         // Appliquer des styles spécifiques pour le PDF compact
                         clonedElement.style.width = '210mm';
                         clonedElement.style.minHeight = '297mm';
-                        clonedElement.style.padding = '12mm';
+                        clonedElement.style.padding = '15mm';
                         clonedElement.style.margin = '0 auto';
                         clonedElement.style.background = 'white';
                         clonedElement.style.boxShadow = 'none';
                         clonedElement.style.fontFamily = 'Arial, sans-serif';
-                        clonedElement.style.fontSize = '9pt';
-                        clonedElement.style.lineHeight = '1.2';
+                        clonedElement.style.fontSize = '10pt';
+                        clonedElement.style.lineHeight = '1.3';
                         
                         // Optimiser les images pour réduire la taille
                         const images = clonedElement.getElementsByTagName('img');
                         for (let img of images) {
-                            img.style.maxWidth = '80px';
-                            img.style.maxHeight = '40px';
+                            img.style.maxWidth = '120px';
+                            img.style.maxHeight = '60px';
                         }
                     }
                 }
