@@ -2279,6 +2279,7 @@
                 } catch (error) {
                     console.error('❌ Erreur sauvegarde GitHub:', error);
                     
+                    // Sauvegarde de secours dans localStorage
                     localStorage.setItem('efacture_backup_data', JSON.stringify(data));
                     localStorage.setItem('efacture_backup_timestamp', new Date().toISOString());
                     
@@ -3182,7 +3183,7 @@
                     pdf.save(`facture-${invoice.number}.pdf`);
                     showNotification(`Facture ${invoice.number} téléchargée avec succès ! (${fileSize.toFixed(2)} Mo)`);
                 }
-            }).catch(error) {
+            }).catch(error => {
                 console.error('Erreur lors de la génération du PDF:', error);
                 showNotification('Erreur lors de la génération du PDF', 'error');
             });
@@ -3262,8 +3263,13 @@
             
             document.getElementById('invoiceCandidate').value = candidateId;
             
-            const modal = bootstrap.Modal(document.getElementById('addInvoiceModal'));
-            modal.show();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addInvoiceModal'));
+            if (modal) {
+                modal.show();
+            } else {
+                const newModal = new bootstrap.Modal(document.getElementById('addInvoiceModal'));
+                newModal.show();
+            }
         }
         
         function updateNavbarLogo(school) {
