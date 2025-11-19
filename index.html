@@ -979,93 +979,6 @@
                 font-size: 16pt;
             }
         }
-
-        /* Styles pour la visualisation de facture en A4 */
-        .invoice-a4-preview {
-            width: 210mm;
-            min-height: 297mm;
-            padding: 15mm;
-            margin: 0 auto;
-            background: white;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            font-family: 'Inter', Arial, sans-serif;
-            font-size: 10pt;
-            line-height: 1.3;
-            box-sizing: border-box;
-        }
-
-        .invoice-a4-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #4361ee;
-            padding-bottom: 10px;
-        }
-
-        .invoice-a4-title {
-            font-size: 20pt;
-            font-weight: bold;
-            color: #4361ee;
-            margin-bottom: 5px;
-        }
-
-        .invoice-a4-company-info {
-            text-align: right;
-            font-size: 9pt;
-        }
-
-        .invoice-a4-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .invoice-a4-items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-            font-size: 9pt;
-        }
-
-        .invoice-a4-items-table th {
-            background: #4361ee;
-            color: white;
-            padding: 8px;
-            text-align: left;
-            font-weight: bold;
-        }
-
-        .invoice-a4-items-table td {
-            padding: 8px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .invoice-a4-totals {
-            width: 100%;
-            max-width: 250px;
-            margin-left: auto;
-            font-size: 9pt;
-        }
-
-        .invoice-a4-totals tr td {
-            padding: 4px 0;
-        }
-
-        .invoice-a4-totals tr:last-child {
-            font-weight: bold;
-            border-top: 2px solid #4361ee;
-        }
-
-        .invoice-a4-footer {
-            margin-top: 20px;
-            text-align: center;
-            color: #666;
-            font-size: 8pt;
-            border-top: 1px solid #eee;
-            padding-top: 10px;
-        }
     </style>
 </head>
 <body>
@@ -3088,17 +3001,17 @@
             
             const invoicePreview = document.getElementById('invoice-preview-content');
             invoicePreview.innerHTML = `
-                <div class="invoice-a4-preview" id="invoice-to-print">
-                    <div class="invoice-a4-header">
+                <div class="pdf-optimized" id="invoice-to-print">
+                    <div class="pdf-header">
                         <div>
-                            <h1 class="invoice-a4-title">FACTURE</h1>
+                            <h1 class="pdf-title">FACTURE</h1>
                             <p class="mb-0"><strong>N° ${invoice.number}</strong></p>
                             <p class="mb-0">Date: ${formatDate(invoice.date)}</p>
                             <p class="mb-0">Échéance: ${formatDate(invoice.dueDate)}</p>
                             <p class="mb-0">Catégorie: ${invoice.licenseCategory || 'Non spécifiée'}</p>
                         </div>
-                        <div class="invoice-a4-company-info">
-                            ${school.logo ? `<img src="${school.logo}" alt="Logo ${school.name}" class="school-logo mb-2" style="max-width: 80px; max-height: 40px;">` : ''}
+                        <div class="pdf-company-info">
+                            ${school.logo ? `<img src="${school.logo}" alt="Logo ${school.name}" class="school-logo mb-2" style="max-width: 120px; max-height: 60px;">` : ''}
                             <h4>${school.name || 'Auto-École'}</h4>
                             <p class="mb-0">${school.address || ''}</p>
                             <p class="mb-0">${school.phone || ''}</p>
@@ -3107,7 +3020,7 @@
                         </div>
                     </div>
                     
-                    <div class="invoice-a4-details">
+                    <div class="pdf-details">
                         <div>
                             <h5>Facturé à:</h5>
                             <p class="mb-1"><strong>${candidate.firstName} ${candidate.lastName}</strong></p>
@@ -3124,7 +3037,7 @@
                         </div>
                     </div>
                     
-                    <table class="invoice-a4-items-table">
+                    <table class="pdf-items-table">
                         <thead>
                             <tr>
                                 <th style="width: 50%;">Description</th>
@@ -3145,7 +3058,7 @@
                         </tbody>
                     </table>
                     
-                    <table class="invoice-a4-totals">
+                    <table class="pdf-totals">
                         <tr>
                             <td>Sous-total:</td>
                             <td class="text-end">${formatCFA(invoice.subtotal)}</td>
@@ -3160,7 +3073,7 @@
                         </tr>
                     </table>
                     
-                    <div class="invoice-a4-footer">
+                    <div class="pdf-footer">
                         <p>Merci de votre confiance !</p>
                         <p>Pour toute question concernant cette facture, veuillez contacter ${school.name || 'notre auto-école'}.</p>
                     </div>
@@ -3179,140 +3092,79 @@
             
             showNotification(`Génération du PDF pour la facture ${invoice.number}...`, 'warning');
             
-            // Créer un élément temporaire pour le PDF
-            const tempElement = document.createElement('div');
-            tempElement.style.width = '210mm';
-            tempElement.style.minHeight = '297mm';
-            tempElement.style.padding = '15mm';
-            tempElement.style.margin = '0 auto';
-            tempElement.style.background = 'white';
-            tempElement.style.fontFamily = 'Arial, sans-serif';
-            tempElement.style.fontSize = '10pt';
-            tempElement.style.lineHeight = '1.3';
-            tempElement.style.boxSizing = 'border-box';
-            
-            const candidate = database.candidates.find(c => c.id === invoice.candidateId) || {};
-            const school = database.drivingSchools.find(s => s.id === invoice.schoolId) || {};
-            const amountPaid = invoice.amountPaid || 0;
-            const remainingAmount = invoice.totalAmount - amountPaid;
-            
-            // Optimiser le contenu pour tenir sur une seule page
-            tempElement.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; border-bottom: 2px solid #4361ee; padding-bottom: 10px;">
-                    <div>
-                        <h1 style="font-size: 20pt; font-weight: bold; color: #4361ee; margin-bottom: 5px;">FACTURE</h1>
-                        <p style="margin-bottom: 3px;"><strong>N° ${invoice.number}</strong></p>
-                        <p style="margin-bottom: 3px;">Date: ${formatDate(invoice.date)}</p>
-                        <p style="margin-bottom: 3px;">Échéance: ${formatDate(invoice.dueDate)}</p>
-                        <p style="margin-bottom: 0;">Catégorie: ${invoice.licenseCategory || 'Non spécifiée'}</p>
-                    </div>
-                    <div style="text-align: right; font-size: 9pt;">
-                        ${school.logo ? `<img src="${school.logo}" alt="Logo ${school.name}" style="max-width: 80px; max-height: 40px; margin-bottom: 5px;">` : ''}
-                        <h4 style="margin-bottom: 5px;">${school.name || 'Auto-École'}</h4>
-                        <p style="margin-bottom: 2px;">${school.address || ''}</p>
-                        <p style="margin-bottom: 2px;">${school.phone || ''}</p>
-                        <p style="margin-bottom: 2px;">${school.email || ''}</p>
-                        <p style="margin-bottom: 0;">IFU: ${school.ifu || ''}</p>
-                    </div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                    <div>
-                        <h5 style="margin-bottom: 5px;">Facturé à:</h5>
-                        <p style="margin-bottom: 3px;"><strong>${candidate.firstName} ${candidate.lastName}</strong></p>
-                        <p style="margin-bottom: 3px;">${candidate.email || ''}</p>
-                        <p style="margin-bottom: 3px;">${candidate.phone || ''}</p>
-                        <p style="margin-bottom: 0;">${candidate.address || ''}</p>
-                    </div>
-                    <div>
-                        <h5 style="margin-bottom: 5px;">Détails de paiement:</h5>
-                        <p style="margin-bottom: 3px;"><strong>Méthode:</strong> ${invoice.paymentMethod}</p>
-                        <p style="margin-bottom: 3px;"><strong>Statut:</strong> ${invoice.status === 'paid' ? 'Payé' : 'Validé'}</p>
-                        <p style="margin-bottom: 3px;"><strong>Montant à payer:</strong> ${formatCFA(invoice.totalAmount)}</p>
-                        <p style="margin-bottom: 0;"><strong>Reste à payer:</strong> ${formatCFA(remainingAmount)}</p>
-                    </div>
-                </div>
-                
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9pt;">
-                    <thead>
-                        <tr>
-                            <th style="width: 50%; background: #4361ee; color: white; padding: 8px; text-align: left; font-weight: bold;">Description</th>
-                            <th style="width: 15%; background: #4361ee; color: white; padding: 8px; text-align: left; font-weight: bold;">Quantité</th>
-                            <th style="width: 20%; background: #4361ee; color: white; padding: 8px; text-align: left; font-weight: bold;">Prix unitaire</th>
-                            <th style="width: 15%; background: #4361ee; color: white; padding: 8px; text-align: left; font-weight: bold;">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${invoice.items.map(item => `
-                            <tr>
-                                <td style="padding: 6px; border-bottom: 1px solid #ddd;">${item.description}</td>
-                                <td style="padding: 6px; border-bottom: 1px solid #ddd;">${item.quantity}</td>
-                                <td style="padding: 6px; border-bottom: 1px solid #ddd;">${formatCFA(item.price)}</td>
-                                <td style="padding: 6px; border-bottom: 1px solid #ddd;">${formatCFA(item.total)}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                
-                <table style="width: 100%; max-width: 250px; margin-left: auto; font-size: 9pt;">
-                    <tr>
-                        <td style="padding: 4px 0;">Sous-total:</td>
-                        <td style="padding: 4px 0; text-align: right;">${formatCFA(invoice.subtotal)}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 4px 0;">TVA (0%):</td>
-                        <td style="padding: 4px 0; text-align: right;">${formatCFA(invoice.taxAmount)}</td>
-                    </tr>
-                    <tr style="font-weight: bold; border-top: 2px solid #4361ee;">
-                        <td style="padding: 4px 0;">Total:</td>
-                        <td style="padding: 4px 0; text-align: right;">${formatCFA(invoice.totalAmount)}</td>
-                    </tr>
-                </table>
-                
-                <div style="margin-top: 20px; text-align: center; color: #666; font-size: 8pt; border-top: 1px solid #eee; padding-top: 10px;">
-                    <p>Merci de votre confiance !</p>
-                    <p>Pour toute question concernant cette facture, veuillez contacter ${school.name || 'notre auto-école'}.</p>
-                </div>
-            `;
-            
-            document.body.appendChild(tempElement);
+            const element = document.getElementById('invoice-to-print');
             
             const options = {
-                scale: 2,
+                scale: 1.5,
                 useCORS: true,
                 logging: false,
-                width: 210,
-                height: 297,
-                windowWidth: 210,
-                windowHeight: 297,
+                width: element.scrollWidth,
+                height: element.scrollHeight,
+                windowWidth: element.scrollWidth,
+                windowHeight: element.scrollHeight,
                 backgroundColor: '#ffffff',
                 imageTimeout: 0,
-                removeContainer: true
+                removeContainer: true,
+                onclone: function(clonedDoc) {
+                    const clonedElement = clonedDoc.getElementById('invoice-to-print');
+                    if (clonedElement) {
+                        clonedElement.style.width = '210mm';
+                        clonedElement.style.minHeight = '297mm';
+                        clonedElement.style.padding = '15mm';
+                        clonedElement.style.margin = '0 auto';
+                        clonedElement.style.background = 'white';
+                        clonedElement.style.boxShadow = 'none';
+                        clonedElement.style.fontFamily = 'Arial, sans-serif';
+                        clonedElement.style.fontSize = '10pt';
+                        clonedElement.style.lineHeight = '1.3';
+                        
+                        const images = clonedElement.getElementsByTagName('img');
+                        for (let img of images) {
+                            img.style.maxWidth = '120px';
+                            img.style.maxHeight = '60px';
+                        }
+                    }
+                }
             };
             
-            html2canvas(tempElement, options).then(canvas => {
-                document.body.removeChild(tempElement);
-                
-                const imgData = canvas.toDataURL('image/jpeg', 0.8);
+            html2canvas(element, options).then(canvas => {
+                const imgData = canvas.toDataURL('image/jpeg', 0.7);
                 
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 
                 const imgWidth = 210;
+                const pageHeight = 295;
                 const imgHeight = (canvas.height * imgWidth) / canvas.width;
                 
-                // Ajuster la hauteur pour éviter le débordement
-                const adjustedHeight = Math.min(imgHeight, 290);
+                let heightLeft = imgHeight;
+                let position = 0;
                 
-                pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, adjustedHeight);
+                pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
                 
-                // Nom du fichier basé sur le nom du candidat
-                const fileName = `facture-${candidate.firstName}-${candidate.lastName}-${invoice.number}.pdf`.replace(/\s+/g, '-');
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
                 
-                pdf.save(fileName);
-                showNotification(`Facture ${invoice.number} téléchargée avec succès !`);
+                const pdfBlob = pdf.output('blob');
+                const fileSize = pdfBlob.size / 1024 / 1024;
+                
+                if (fileSize > 1) {
+                    showNotification('La facture est trop volumineuse. Optimisation en cours...', 'warning');
+                    const lowQualityImgData = canvas.toDataURL('image/jpeg', 0.5);
+                    const pdfLow = new jsPDF('p', 'mm', 'a4');
+                    pdfLow.addImage(lowQualityImgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+                    pdfLow.save(`facture-${invoice.number}.pdf`);
+                    showNotification(`Facture ${invoice.number} téléchargée (taille réduite) !`);
+                } else {
+                    pdf.save(`facture-${invoice.number}.pdf`);
+                    showNotification(`Facture ${invoice.number} téléchargée avec succès ! (${fileSize.toFixed(2)} Mo)`);
+                }
             }).catch(error => {
-                document.body.removeChild(tempElement);
                 console.error('Erreur lors de la génération du PDF:', error);
                 showNotification('Erreur lors de la génération du PDF', 'error');
             });
@@ -3425,9 +3277,8 @@
                 return;
             }
             
-            // Limite à 3 Mo au lieu de 500 Ko
-            if (file.size > 3 * 1024 * 1024) {
-                showNotification('L\'image est trop volumineuse. Veuillez choisir une image de moins de 3 Mo.', 'error');
+            if (file.size > 500 * 1024) {
+                showNotification('L\'image est trop volumineuse. Veuillez choisir une image de moins de 500KB.', 'error');
                 return;
             }
             
