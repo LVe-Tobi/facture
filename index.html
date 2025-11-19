@@ -2177,118 +2177,90 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // =============================================
-        // SERVICE DE STOCKAGE AVEC GITHUB
+        // SERVICE JSONBin.io
         // =============================================
-        
-        // ⚠️ CONFIGURATION GITHUB - À MODIFIER ⚠️
-        const GITHUB_CONFIG = {
-            USERNAME: 'LVe-Tobi',
-            REPO: 'efacture-data',
-            TOKEN: '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',
-            DATA_FILE: 'data.json'
+
+        // ⚠️ CONFIGURATION JSONBIN - À MODIFIER ⚠️
+        const JSONBIN_CONFIG = {
+            // Remplacer avec vos vraies clés depuis jsonbin.io
+            API_KEY: '$2a$10$ubC0V678cM4EzyoX5LcEf.rE022jjEWgmStZ6ZgcVd/B30AURMxHa', // Votre Secret Key
+            BIN_ID: '69138fb743b1c97be9a76abc', // Votre Bin ID
+            BASE_URL: 'https://api.jsonbin.io/v3/b'
         };
-        
-        const GITHUB_API = {
-            GET_URL: `https://api.github.com/repos/${GITHUB_CONFIG.USERNAME}/${GITHUB_CONFIG.REPO}/contents/${GITHUB_CONFIG.DATA_FILE}`,
-            PUT_URL: `https://api.github.com/repos/${GITHUB_CONFIG.USERNAME}/${GITHUB_CONFIG.REPO}/contents/${GITHUB_CONFIG.DATA_FILE}`
-        };
-        
-        // Service de stockage avec GitHub
-        const GitHubStorage = {
+
+        const JsonBinStorage = {
             async loadData() {
                 try {
                     showLoading(true);
-                    console.log('📥 Chargement des données depuis GitHub...');
+                    console.log('📥 Chargement depuis JSONBin...');
                     
-                    const response = await fetch(GITHUB_API.GET_URL, {
-                        headers: {
-                            'Authorization': `token ${GITHUB_CONFIG.TOKEN}`,
-                            'Accept': 'application/vnd.github.v3+json'
+                    const response = await fetch(
+                        `${JSONBIN_CONFIG.BASE_URL}/${JSONBIN_CONFIG.BIN_ID}/latest`,
+                        {
+                            method: 'GET',
+                            headers: {
+                                'X-Master-Key': JSONBIN_CONFIG.API_KEY,
+                                'Content-Type': 'application/json'
+                            }
                         }
-                    });
+                    );
                     
                     if (!response.ok) {
                         if (response.status === 404) {
-                            console.log('📄 Fichier non trouvé, création avec données par défaut');
+                            console.log('📄 Bin non trouvé, création avec données par défaut');
                             return this.getDefaultData();
                         }
-                        throw new Error(`Erreur GitHub: ${response.status}`);
+                        throw new Error(`Erreur JSONBin: ${response.status}`);
                     }
                     
-                    const data = await response.json();
-                    const content = atob(data.content);
-                    console.log('✅ Données chargées depuis GitHub');
-                    return JSON.parse(content);
+                    const result = await response.json();
+                    console.log('✅ Données chargées depuis JSONBin');
+                    return result.record || this.getDefaultData();
                     
                 } catch (error) {
-                    console.error('❌ Erreur GitHub:', error);
+                    console.error('❌ Erreur JSONBin:', error);
                     console.log('🔄 Utilisation des données locales');
                     return this.loadBackupData();
                 } finally {
                     showLoading(false);
                 }
             },
-            
+
             async saveData(data) {
                 try {
                     showLoading(true);
-                    console.log('💾 Sauvegarde des données sur GitHub...');
+                    console.log('💾 Sauvegarde sur JSONBin...');
                     
-                    let sha = null;
-                    try {
-                        const getResponse = await fetch(GITHUB_API.GET_URL, {
+                    const response = await fetch(
+                        `${JSONBIN_CONFIG.BASE_URL}/${JSONBIN_CONFIG.BIN_ID}`,
+                        {
+                            method: 'PUT',
                             headers: {
-                                'Authorization': `token ${GITHUB_CONFIG.TOKEN}`,
-                                'Accept': 'application/vnd.github.v3+json'
-                            }
-                        });
-                        
-                        if (getResponse.ok) {
-                            const existingData = await getResponse.json();
-                            sha = existingData.sha;
+                                'X-Master-Key': JSONBIN_CONFIG.API_KEY,
+                                'Content-Type': 'application/json',
+                                'X-Bin-Versioning': 'false'
+                            },
+                            body: JSON.stringify(data)
                         }
-                    } catch (error) {
-                        console.log('🆕 Création d\'un nouveau fichier');
-                    }
-                    
-                    const content = btoa(JSON.stringify(data, null, 2));
-                    
-                    const putData = {
-                        message: `Mise à jour E-Facture - ${new Date().toLocaleString('fr-FR')}`,
-                        content: content,
-                        sha: sha
-                    };
-                    
-                    const response = await fetch(GITHUB_API.PUT_URL, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `token ${GITHUB_CONFIG.TOKEN}`,
-                            'Accept': 'application/vnd.github.v3+json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(putData)
-                    });
+                    );
                     
                     if (!response.ok) {
                         throw new Error(`Erreur sauvegarde: ${response.status}`);
                     }
                     
-                    console.log('✅ Données sauvegardées sur GitHub');
+                    console.log('✅ Données sauvegardées sur JSONBin');
                     return true;
                     
                 } catch (error) {
-                    console.error('❌ Erreur sauvegarde GitHub:', error);
-                    
-                    // Sauvegarde de secours dans localStorage
-                    localStorage.setItem('efacture_backup_data', JSON.stringify(data));
-                    localStorage.setItem('efacture_backup_timestamp', new Date().toISOString());
-                    
+                    console.error('❌ Erreur sauvegarde JSONBin:', error);
+                    console.log('🔄 Sauvegarde locale de secours');
+                    this.saveBackupData(data);
                     throw new Error('Sauvegarde locale effectuée');
                 } finally {
                     showLoading(false);
                 }
             },
-            
+
             loadBackupData() {
                 try {
                     const backupData = localStorage.getItem('efacture_backup_data');
@@ -2304,7 +2276,16 @@
                 
                 return this.getDefaultData();
             },
-            
+
+            saveBackupData(data) {
+                try {
+                    localStorage.setItem('efacture_backup_data', JSON.stringify(data));
+                    localStorage.setItem('efacture_backup_timestamp', new Date().toISOString());
+                } catch (error) {
+                    console.error('Erreur sauvegarde locale:', error);
+                }
+            },
+
             getDefaultData() {
                 return {
                     drivingSchools: [
@@ -2329,9 +2310,9 @@
         };
 
         // =============================================
-        // BASE DE DONNÉES AVEC GITHUB
+        // BASE DE DONNÉES AVEC JSONBin
         // =============================================
-        
+
         const database = {
             drivingSchools: [],
             candidates: [],
@@ -2341,7 +2322,7 @@
             
             async init() {
                 try {
-                    const data = await GitHubStorage.loadData();
+                    const data = await JsonBinStorage.loadData();
                     this.drivingSchools = data.drivingSchools || [];
                     this.candidates = data.candidates || [];
                     this.invoices = data.invoices || [];
@@ -2354,7 +2335,7 @@
                     
                 } catch (error) {
                     console.error('Erreur initialisation:', error);
-                    const backupData = GitHubStorage.loadBackupData();
+                    const backupData = JsonBinStorage.loadBackupData();
                     this.drivingSchools = backupData.drivingSchools || [];
                     this.candidates = backupData.candidates || [];
                     this.invoices = backupData.invoices || [];
@@ -2373,7 +2354,7 @@
                         messages: this.messages
                     };
                     
-                    await GitHubStorage.saveData(data);
+                    await JsonBinStorage.saveData(data);
                 } catch (error) {
                     console.error('Erreur sauvegarde:', error);
                     throw error;
