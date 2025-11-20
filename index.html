@@ -881,106 +881,7 @@
             height: 3rem;
         }
 
-        /* Styles spécifiques pour le PDF optimisé en A4 vertical */
-        .pdf-optimized {
-            width: 210mm;
-            min-height: 297mm;
-            padding: 15mm;
-            margin: 0 auto;
-            background: white;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            font-family: 'Inter', Arial, sans-serif;
-            font-size: 10pt;
-            line-height: 1.3;
-            box-sizing: border-box;
-        }
-
-        .pdf-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #4361ee;
-            padding-bottom: 10px;
-        }
-
-        .pdf-title {
-            font-size: 20pt;
-            font-weight: bold;
-            color: #4361ee;
-            margin-bottom: 5px;
-        }
-
-        .pdf-company-info {
-            text-align: right;
-            font-size: 9pt;
-        }
-
-        .pdf-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .pdf-items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-            font-size: 9pt;
-        }
-
-        .pdf-items-table th {
-            background: #4361ee;
-            color: white;
-            padding: 8px;
-            text-align: left;
-            font-weight: bold;
-        }
-
-        .pdf-items-table td {
-            padding: 8px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .pdf-totals {
-            width: 100%;
-            max-width: 250px;
-            margin-left: auto;
-            font-size: 9pt;
-        }
-
-        .pdf-totals tr td {
-            padding: 4px 0;
-        }
-
-        .pdf-totals tr:last-child {
-            font-weight: bold;
-            border-top: 2px solid #4361ee;
-        }
-
-        .pdf-footer {
-            margin-top: 20px;
-            text-align: center;
-            color: #666;
-            font-size: 8pt;
-            border-top: 1px solid #eee;
-            padding-top: 10px;
-        }
-        
-        /* Styles pour les petits écrans */
-        @media (max-width: 576px) {
-            .pdf-optimized {
-                padding: 10mm;
-                font-size: 9pt;
-            }
-            
-            .pdf-title {
-                font-size: 16pt;
-            }
-        }
-
-        /* Styles pour la visualisation de facture en A4 */
+        /* Styles optimisés pour la facture A4 */
         .invoice-a4-preview {
             width: 210mm;
             min-height: 297mm;
@@ -992,6 +893,8 @@
             font-size: 10pt;
             line-height: 1.3;
             box-sizing: border-box;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
 
         .invoice-a4-header {
@@ -1001,6 +904,7 @@
             margin-bottom: 15px;
             border-bottom: 2px solid #4361ee;
             padding-bottom: 10px;
+            flex-wrap: wrap;
         }
 
         .invoice-a4-title {
@@ -1013,6 +917,7 @@
         .invoice-a4-company-info {
             text-align: right;
             font-size: 9pt;
+            min-width: 40%;
         }
 
         .invoice-a4-details {
@@ -1027,6 +932,7 @@
             border-collapse: collapse;
             margin-bottom: 15px;
             font-size: 9pt;
+            table-layout: fixed;
         }
 
         .invoice-a4-items-table th {
@@ -1040,7 +946,13 @@
         .invoice-a4-items-table td {
             padding: 8px;
             border-bottom: 1px solid #ddd;
+            word-wrap: break-word;
         }
+
+        .invoice-a4-items-table th:nth-child(1) { width: 50%; } /* Description */
+        .invoice-a4-items-table th:nth-child(2) { width: 15%; } /* Quantité */
+        .invoice-a4-items-table th:nth-child(3) { width: 20%; } /* Prix unitaire */
+        .invoice-a4-items-table th:nth-child(4) { width: 15%; } /* Total */
 
         .invoice-a4-totals {
             width: 100%;
@@ -1065,6 +977,46 @@
             font-size: 8pt;
             border-top: 1px solid #eee;
             padding-top: 10px;
+        }
+
+        /* Optimisation pour impression */
+        @media print {
+            .invoice-a4-preview {
+                box-shadow: none;
+                margin: 0;
+                padding: 15mm;
+                width: 100%;
+                height: 100%;
+            }
+            
+            body {
+                background: white;
+            }
+        }
+
+        /* Styles pour les petits écrans */
+        @media (max-width: 768px) {
+            .invoice-a4-preview {
+                padding: 10mm;
+                font-size: 9pt;
+            }
+            
+            .invoice-a4-title {
+                font-size: 16pt;
+            }
+            
+            .invoice-a4-header {
+                flex-direction: column;
+            }
+            
+            .invoice-a4-company-info {
+                text-align: left;
+                margin-top: 10px;
+            }
+            
+            .invoice-a4-details {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -3175,10 +3127,10 @@
                     <table class="invoice-a4-items-table">
                         <thead>
                             <tr>
-                                <th style="width: 50%;">Description</th>
-                                <th style="width: 15%;">Quantité</th>
-                                <th style="width: 20%;">Prix unitaire</th>
-                                <th style="width: 15%;">Total</th>
+                                <th>Description</th>
+                                <th>Quantité</th>
+                                <th>Prix unitaire</th>
+                                <th>Total</th>
                             </tr>
                         </thead>
                         <tbody>
