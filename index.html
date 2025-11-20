@@ -3088,81 +3088,113 @@
             
             const invoicePreview = document.getElementById('invoice-preview-content');
             invoicePreview.innerHTML = `
-                <div class="invoice-a4-preview" id="invoice-to-print">
-                    <div class="invoice-a4-header">
-                        <div>
-                            <h1 class="invoice-a4-title">FACTURE</h1>
-                            <p class="mb-0"><strong>N° ${invoice.number}</strong></p>
-                            <p class="mb-0">Date: ${formatDate(invoice.date)}</p>
-                            <p class="mb-0">Échéance: ${formatDate(invoice.dueDate)}</p>
-                            <p class="mb-0">Catégorie: ${invoice.licenseCategory || 'Non spécifiée'}</p>
-                        </div>
-                        <div class="invoice-a4-company-info">
-                            ${school.logo ? `<img src="${school.logo}" alt="Logo ${school.name}" class="school-logo mb-2" style="max-width: 80px; max-height: 40px;">` : ''}
-                            <h4>${school.name || 'Auto-École'}</h4>
-                            <p class="mb-0">${school.address || ''}</p>
-                            <p class="mb-0">${school.phone || ''}</p>
-                            <p class="mb-0">${school.email || ''}</p>
-                            <p class="mb-0">IFU: ${school.ifu || ''}</p>
+                <div class="invoice-a4-preview" id="invoice-to-print" style="font-family: Arial, sans-serif;">
+                    <!-- En-tête -->
+                    <div style="background: #4361ee; color: white; padding: 15px; margin: -15mm -15mm 15px -15mm;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h1 style="margin: 0; font-size: 24px; font-weight: bold;">FACTURE</h1>
+                            <div style="text-align: right;">
+                                <strong style="font-size: 14px;">N° ${invoice.number}</strong>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="invoice-a4-details">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <!-- Émetteur -->
                         <div>
-                            <h5>Facturé à:</h5>
-                            <p class="mb-1"><strong>${candidate.firstName} ${candidate.lastName}</strong></p>
-                            <p class="mb-1">${candidate.email || ''}</p>
-                            <p class="mb-1">${candidate.phone || ''}</p>
-                            <p class="mb-0">${candidate.address || ''}</p>
+                            <h3 style="color: #4361ee; font-size: 12px; margin-bottom: 8px; text-transform: uppercase;">Émetteur</h3>
+                            <div style="font-size: 11px; line-height: 1.4;">
+                                <strong>${school.name || 'Auto-École'}</strong><br>
+                                ${school.address || ''}<br>
+                                ${school.phone ? `Tél: ${school.phone}` : ''}<br>
+                                ${school.email ? `Email: ${school.email}` : ''}<br>
+                                ${school.ifu ? `IFU: ${school.ifu}` : ''}
+                            </div>
                         </div>
+                        
+                        <!-- Client -->
                         <div>
-                            <h5>Détails de paiement:</h5>
-                            <p class="mb-1"><strong>Méthode:</strong> ${invoice.paymentMethod}</p>
-                            <p class="mb-1"><strong>Statut:</strong> ${invoice.status === 'paid' ? 'Payé' : 'Validé'}</p>
-                            <p class="mb-1"><strong>Montant à payer:</strong> ${formatCFA(invoice.totalAmount)}</p>
-                            <p class="mb-0"><strong>Reste à payer:</strong> ${formatCFA(remainingAmount)}</p>
+                            <h3 style="color: #4361ee; font-size: 12px; margin-bottom: 8px; text-transform: uppercase;">Client</h3>
+                            <div style="font-size: 11px; line-height: 1.4;">
+                                <strong>${candidate.firstName} ${candidate.lastName}</strong><br>
+                                ${candidate.email ? `Email: ${candidate.email}` : ''}<br>
+                                ${candidate.phone ? `Tél: ${candidate.phone}` : ''}<br>
+                                ${candidate.address ? `Adresse: ${candidate.address}` : ''}
+                            </div>
                         </div>
                     </div>
                     
-                    <table class="invoice-a4-items-table">
+                    <!-- Informations facture -->
+                    <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 11px;">
+                            <div>
+                                <span style="color: #666;">Date de facturation:</span><br>
+                                <strong>${formatDate(invoice.date)}</strong>
+                            </div>
+                            <div>
+                                <span style="color: #666;">Date d'échéance:</span><br>
+                                <strong>${formatDate(invoice.dueDate)}</strong>
+                            </div>
+                            <div>
+                                <span style="color: #666;">Catégorie:</span><br>
+                                <strong>${invoice.licenseCategory || 'Non spécifiée'}</strong>
+                            </div>
+                            <div>
+                                <span style="color: #666;">Méthode de paiement:</span><br>
+                                <strong>${invoice.paymentMethod}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tableau des articles -->
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 10px;">
                         <thead>
-                            <tr>
-                                <th>Description</th>
-                                <th>Quantité</th>
-                                <th>Prix unitaire</th>
-                                <th>Total</th>
+                            <tr style="background: #4361ee; color: white;">
+                                <th style="padding: 10px; text-align: left; font-weight: bold; width: 55%;">Description</th>
+                                <th style="padding: 10px; text-align: center; font-weight: bold; width: 15%;">Quantité</th>
+                                <th style="padding: 10px; text-align: right; font-weight: bold; width: 15%;">Prix unitaire</th>
+                                <th style="padding: 10px; text-align: right; font-weight: bold; width: 15%;">Total</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${invoice.items.map(item => `
-                                <tr>
-                                    <td>${item.description}</td>
-                                    <td>${item.quantity}</td>
-                                    <td>${formatCFA(item.price)}</td>
-                                    <td>${formatCFA(item.total)}</td>
+                                <tr style="border-bottom: 1px solid #f0f0f0;">
+                                    <td style="padding: 8px 10px;">${item.description}</td>
+                                    <td style="padding: 8px 10px; text-align: center;">${item.quantity}</td>
+                                    <td style="padding: 8px 10px; text-align: right;">${formatCFA(item.price)}</td>
+                                    <td style="padding: 8px 10px; text-align: right;">${formatCFA(item.total)}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
                     </table>
                     
-                    <table class="invoice-a4-totals">
-                        <tr>
-                            <td>Sous-total:</td>
-                            <td class="text-end">${formatCFA(invoice.subtotal)}</td>
-                        </tr>
-                        <tr>
-                            <td>TVA (0%):</td>
-                            <td class="text-end">${formatCFA(invoice.taxAmount)}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Total:</strong></td>
-                            <td class="text-end"><strong>${formatCFA(invoice.totalAmount)}</strong></td>
-                        </tr>
-                    </table>
+                    <!-- Totaux -->
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 30px;">
+                        <div style="width: 250px;">
+                            <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 11px;">
+                                <span>Sous-total:</span>
+                                <span>${formatCFA(invoice.subtotal)}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 11px;">
+                                <span>TVA (0%):</span>
+                                <span>${formatCFA(invoice.taxAmount)}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-top: 2px solid #4361ee; font-size: 12px; font-weight: bold;">
+                                <span>TOTAL:</span>
+                                <span>${formatCFA(invoice.totalAmount)}</span>
+                            </div>
+                            <div style="margin-top: 10px; font-size: 10px; color: #666;">
+                                <div>Statut: <strong>${invoice.status === 'paid' ? 'PAYÉ' : 'EN ATTENTE'}</strong></div>
+                                <div>Montant payé: <strong>${formatCFA(amountPaid)}</strong></div>
+                                <div>Reste à payer: <strong>${formatCFA(remainingAmount)}</strong></div>
+                            </div>
+                        </div>
+                    </div>
                     
-                    <div class="invoice-a4-footer">
-                        <p>Merci de votre confiance !</p>
-                        <p>Pour toute question concernant cette facture, veuillez contacter ${school.name || 'notre auto-école'}.</p>
+                    <!-- Pied de page -->
+                    <div style="border-top: 1px solid #e9ecef; padding-top: 15px; text-align: center; color: #666; font-size: 9px;">
+                        <p style="margin: 0 0 5px 0;">Merci de votre confiance !</p>
+                        <p style="margin: 0;">Pour toute question concernant cette facture, veuillez contacter ${school.name || 'notre auto-école'}</p>
                     </div>
                 </div>
             `;
@@ -3187,82 +3219,162 @@
             const amountPaid = invoice.amountPaid || 0;
             const remainingAmount = invoice.totalAmount - amountPaid;
 
-            // Configuration
+            // Configuration des dimensions
             const margin = 15;
-            let yPosition = margin;
-            const lineHeight = 5;
             const pageWidth = 210;
             const contentWidth = pageWidth - (2 * margin);
+            let yPosition = margin;
 
-            // En-tête
-            pdf.setFontSize(20);
-            pdf.setTextColor(67, 97, 238);
-            pdf.text('FACTURE', margin, yPosition);
-            yPosition += 10;
+            // Couleurs professionnelles
+            const primaryColor = [67, 97, 238]; // Bleu
+            const secondaryColor = [100, 100, 100]; // Gris
+            const accentColor = [0, 0, 0]; // Noir
 
-            pdf.setFontSize(10);
-            pdf.setTextColor(0, 0, 0);
-            pdf.text(`N° ${invoice.number}`, margin, yPosition);
-            pdf.text(`Date: ${formatDate(invoice.date)}`, pageWidth - margin - 40, yPosition);
-            yPosition += lineHeight;
+            // ==================== EN-TÊTE PRINCIPALE ====================
+            pdf.setFillColor(...primaryColor);
+            pdf.rect(0, 0, pageWidth, 25, 'F');
             
-            pdf.text(`Échéance: ${formatDate(invoice.dueDate)}`, pageWidth - margin - 40, yPosition);
-            yPosition += lineHeight;
-            
-            pdf.text(`Catégorie: ${invoice.licenseCategory || 'Non spécifiée'}`, pageWidth - margin - 40, yPosition);
-            yPosition += 10;
-
-            // Informations auto-école et candidat
-            pdf.setFontSize(12);
-            pdf.text('Auto-École:', margin, yPosition);
-            pdf.text('Facturé à:', pageWidth / 2, yPosition);
-            yPosition += lineHeight;
-
-            pdf.setFontSize(10);
-            pdf.text(school.name || 'Auto-École', margin, yPosition);
-            pdf.text(`${candidate.firstName} ${candidate.lastName}`, pageWidth / 2, yPosition);
-            yPosition += lineHeight;
-
-            pdf.text(school.address || '', margin, yPosition);
-            pdf.text(candidate.email || '', pageWidth / 2, yPosition);
-            yPosition += lineHeight;
-
-            pdf.text(school.phone || '', margin, yPosition);
-            pdf.text(candidate.phone || '', pageWidth / 2, yPosition);
-            yPosition += 10;
-
-            // Ligne séparatrice
-            pdf.setDrawColor(67, 97, 238);
-            pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-            yPosition += 10;
-
-            // En-tête du tableau
-            pdf.setFillColor(67, 97, 238);
+            // Titre principal
             pdf.setTextColor(255, 255, 255);
-            pdf.rect(margin, yPosition, contentWidth, 8, 'F');
+            pdf.setFontSize(22);
+            pdf.setFont(undefined, 'bold');
+            pdf.text('FACTURE', margin, 17);
             
-            pdf.text('Description', margin + 2, yPosition + 5);
-            pdf.text('Quantité', margin + 110, yPosition + 5);
-            pdf.text('Prix', margin + 140, yPosition + 5);
-            pdf.text('Total', margin + 170, yPosition + 5);
+            // Numéro de facture
+            pdf.setFontSize(12);
+            pdf.text(`N° ${invoice.number}`, pageWidth - margin - 30, 17);
             
-            yPosition += 8;
-            pdf.setTextColor(0, 0, 0);
+            yPosition = 35;
 
+            // ==================== INFORMATIONS ENTREPRISE ====================
+            pdf.setTextColor(...accentColor);
+            pdf.setFontSize(10);
+            pdf.setFont(undefined, 'bold');
+            pdf.text('ÉMETTEUR:', margin, yPosition);
+            
+            pdf.setFont(undefined, 'normal');
+            pdf.text(school.name || 'Auto-École', margin + 25, yPosition);
+            yPosition += 5;
+            
+            if (school.address) {
+                pdf.text(school.address, margin + 25, yPosition);
+                yPosition += 5;
+            }
+            
+            if (school.phone) {
+                pdf.text(`Tél: ${school.phone}`, margin + 25, yPosition);
+                yPosition += 5;
+            }
+            
+            if (school.email) {
+                pdf.text(`Email: ${school.email}`, margin + 25, yPosition);
+                yPosition += 5;
+            }
+            
+            if (school.ifu) {
+                pdf.text(`IFU: ${school.ifu}`, margin + 25, yPosition);
+                yPosition += 5;
+            }
+
+            yPosition += 5;
+
+            // ==================== INFORMATIONS CLIENT ====================
+            const clientStartX = pageWidth / 2;
+            
+            pdf.setFont(undefined, 'bold');
+            pdf.text('CLIENT:', clientStartX, 35);
+            
+            pdf.setFont(undefined, 'normal');
+            pdf.text(`${candidate.firstName} ${candidate.lastName}`, clientStartX + 20, 35);
+            
+            let clientY = 40;
+            if (candidate.email) {
+                pdf.text(`Email: ${candidate.email}`, clientStartX + 20, clientY);
+                clientY += 5;
+            }
+            
+            if (candidate.phone) {
+                pdf.text(`Tél: ${candidate.phone}`, clientStartX + 20, clientY);
+                clientY += 5;
+            }
+            
+            if (candidate.address) {
+                pdf.text(`Adresse: ${candidate.address}`, clientStartX + 20, clientY);
+                clientY += 5;
+            }
+
+            yPosition = Math.max(yPosition, clientY) + 10;
+
+            // ==================== INFORMATIONS FACTURE ====================
+            const infoBoxY = yPosition;
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setFillColor(250, 250, 250);
+            pdf.rect(margin, infoBoxY, contentWidth, 25, 'FD');
+            
+            // Date de facturation
+            pdf.setFontSize(9);
+            pdf.setTextColor(...secondaryColor);
+            pdf.text('DATE DE FACTURATION:', margin + 5, infoBoxY + 8);
+            pdf.setTextColor(...accentColor);
+            pdf.text(formatDate(invoice.date), margin + 45, infoBoxY + 8);
+            
+            // Date d'échéance
+            pdf.setTextColor(...secondaryColor);
+            pdf.text('DATE D\'ÉCHÉANCE:', margin + 5, infoBoxY + 16);
+            pdf.setTextColor(...accentColor);
+            pdf.text(formatDate(invoice.dueDate), margin + 45, infoBoxY + 16);
+            
+            // Catégorie de permis
+            pdf.setTextColor(...secondaryColor);
+            pdf.text('CATÉGORIE:', pageWidth / 2, infoBoxY + 8);
+            pdf.setTextColor(...accentColor);
+            pdf.text(invoice.licenseCategory || 'Non spécifiée', pageWidth / 2 + 25, infoBoxY + 8);
+            
+            // Méthode de paiement
+            pdf.setTextColor(...secondaryColor);
+            pdf.text('MÉTHODE DE PAIEMENT:', pageWidth / 2, infoBoxY + 16);
+            pdf.setTextColor(...accentColor);
+            pdf.text(invoice.paymentMethod, pageWidth / 2 + 45, infoBoxY + 16);
+
+            yPosition += 35;
+
+            // ==================== TABLEAU DES ARTICLES ====================
+            const tableTop = yPosition;
+            
+            // En-tête du tableau
+            pdf.setFillColor(...primaryColor);
+            pdf.rect(margin, tableTop, contentWidth, 8, 'F');
+            
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFontSize(9);
+            pdf.setFont(undefined, 'bold');
+            
+            // Colonnes alignées
+            pdf.text('DESCRIPTION', margin + 2, tableTop + 5);
+            pdf.text('QUANTITÉ', margin + 120, tableTop + 5);
+            pdf.text('PRIX UNITAIRE', margin + 145, tableTop + 5);
+            pdf.text('TOTAL', margin + 180, tableTop + 5);
+            
+            yPosition = tableTop + 8;
+            
             // Articles
+            pdf.setTextColor(...accentColor);
+            pdf.setFont(undefined, 'normal');
+            
             invoice.items.forEach((item, index) => {
-                if (yPosition > 250) { // Nouvelle page si nécessaire
+                if (yPosition > 250) {
                     pdf.addPage();
                     yPosition = margin;
                 }
                 
-                pdf.text(item.description.substring(0, 40), margin + 2, yPosition + 5);
-                pdf.text(item.quantity.toString(), margin + 110, yPosition + 5);
-                pdf.text(formatCFA(item.price), margin + 140, yPosition + 5);
-                pdf.text(formatCFA(item.total), margin + 170, yPosition + 5);
+                // Ligne d'article
+                pdf.text(item.description.substring(0, 45), margin + 2, yPosition + 5);
+                pdf.text(item.quantity.toString(), margin + 120, yPosition + 5);
+                pdf.text(formatCFA(item.price), margin + 145, yPosition + 5);
+                pdf.text(formatCFA(item.total), margin + 180, yPosition + 5);
                 
-                // Ligne séparatrice entre les articles
-                pdf.setDrawColor(200, 200, 200);
+                // Ligne séparatrice
+                pdf.setDrawColor(240, 240, 240);
                 pdf.line(margin, yPosition + 7, pageWidth - margin, yPosition + 7);
                 
                 yPosition += 8;
@@ -3270,45 +3382,79 @@
 
             yPosition += 10;
 
-            // Totaux
-            pdf.setFontSize(11);
-            pdf.text(`Sous-total: ${formatCFA(invoice.subtotal)}`, margin + 120, yPosition);
-            yPosition += lineHeight;
-            pdf.text(`TVA (0%): ${formatCFA(invoice.taxAmount)}`, margin + 120, yPosition);
-            yPosition += lineHeight;
-            pdf.setFontSize(12);
-            pdf.setFont(undefined, 'bold');
-            pdf.text(`Total: ${formatCFA(invoice.totalAmount)}`, margin + 120, yPosition);
-            yPosition += 15;
-
-            // Statut de paiement
-            pdf.setFont(undefined, 'normal');
+            // ==================== TOTAUX ====================
+            const totalsX = margin + 120;
+            
             pdf.setFontSize(10);
-            pdf.text(`Statut: ${invoice.status === 'paid' ? 'Payé' : 'En attente'}`, margin, yPosition);
-            pdf.text(`Méthode: ${invoice.paymentMethod}`, margin, yPosition + lineHeight);
-            pdf.text(`Montant payé: ${formatCFA(amountPaid)}`, margin, yPosition + (2 * lineHeight));
-            pdf.text(`Reste à payer: ${formatCFA(remainingAmount)}`, margin, yPosition + (3 * lineHeight));
+            pdf.setTextColor(...secondaryColor);
+            
+            // Sous-total
+            pdf.text('Sous-total:', totalsX, yPosition);
+            pdf.setTextColor(...accentColor);
+            pdf.text(formatCFA(invoice.subtotal), totalsX + 40, yPosition);
+            yPosition += 6;
+            
+            // TVA
+            pdf.setTextColor(...secondaryColor);
+            pdf.text('TVA (0%):', totalsX, yPosition);
+            pdf.setTextColor(...accentColor);
+            pdf.text(formatCFA(invoice.taxAmount), totalsX + 40, yPosition);
+            yPosition += 6;
+            
+            // Ligne de séparation
+            pdf.setDrawColor(...primaryColor);
+            pdf.line(totalsX, yPosition + 2, totalsX + 60, yPosition + 2);
+            yPosition += 4;
+            
+            // Total
+            pdf.setFontSize(11);
+            pdf.setFont(undefined, 'bold');
+            pdf.setTextColor(...primaryColor);
+            pdf.text('TOTAL:', totalsX, yPosition);
+            pdf.text(formatCFA(invoice.totalAmount), totalsX + 40, yPosition);
+            yPosition += 8;
+            
+            // Statut de paiement
+            pdf.setFontSize(9);
+            pdf.setFont(undefined, 'normal');
+            pdf.setTextColor(...secondaryColor);
+            pdf.text(`Statut: ${invoice.status === 'paid' ? 'PAYÉ' : 'EN ATTENTE'}`, totalsX, yPosition);
+            yPosition += 4;
+            
+            pdf.text(`Montant payé: ${formatCFA(amountPaid)}`, totalsX, yPosition);
+            yPosition += 4;
+            
+            pdf.text(`Reste à payer: ${formatCFA(remainingAmount)}`, totalsX, yPosition);
 
-            // Pied de page
-            yPosition = 270;
+            // ==================== PIED DE PAGE ====================
+            const footerY = 270;
+            
             pdf.setDrawColor(200, 200, 200);
-            pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-            yPosition += 5;
+            pdf.line(margin, footerY, pageWidth - margin, footerY);
             
             pdf.setFontSize(8);
-            pdf.setTextColor(100, 100, 100);
-            pdf.text('Merci de votre confiance !', margin, yPosition);
-            yPosition += lineHeight;
-            pdf.text(`Pour toute question, contactez ${school.name || 'notre auto-école'}`, margin, yPosition);
+            pdf.setTextColor(...secondaryColor);
+            pdf.text('Merci de votre confiance !', margin, footerY + 5);
+            pdf.text(`Pour toute question concernant cette facture, veuillez contacter ${school.name || 'notre auto-école'}`, margin, footerY + 10);
+            
+            // Numéro de page
+            pdf.text(`Page 1/1 - Généré le ${formatDate(new Date().toISOString())}`, pageWidth - margin - 50, footerY + 10);
 
-            // Sauvegarde
-            const fileName = `facture-${candidate.firstName}-${candidate.lastName}-${invoice.number}.pdf`
-                .toLowerCase()
-                .replace(/\s+/g, '-')
-                .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            // ==================== SAUVEGARDE ====================
+            const fileName = `facture-${cleanFileName(candidate.firstName)}-${cleanFileName(candidate.lastName)}-${invoice.number}.pdf`;
             
             pdf.save(fileName);
             showNotification(`Facture ${invoice.number} téléchargée avec succès !`);
+        }
+
+        // Fonction utilitaire pour nettoyer les noms de fichiers
+        function cleanFileName(name) {
+            return name
+                .toLowerCase()
+                .replace(/\s+/g, '-')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9-]/g, '');
         }
         
         async function markAsPaid(invoiceId) {
