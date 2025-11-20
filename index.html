@@ -881,8 +881,8 @@
             height: 3rem;
         }
 
-        /* Styles spécifiques pour le PDF optimisé en A4 vertical */
-        .pdf-optimized {
+        /* Styles optimisés pour la facture A4 */
+        .invoice-a4-preview {
             width: 210mm;
             min-height: 297mm;
             padding: 15mm;
@@ -893,44 +893,49 @@
             font-size: 10pt;
             line-height: 1.3;
             box-sizing: border-box;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
 
-        .pdf-header {
+        .invoice-a4-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 15px;
             border-bottom: 2px solid #4361ee;
             padding-bottom: 10px;
+            flex-wrap: wrap;
         }
 
-        .pdf-title {
+        .invoice-a4-title {
             font-size: 20pt;
             font-weight: bold;
             color: #4361ee;
             margin-bottom: 5px;
         }
 
-        .pdf-company-info {
+        .invoice-a4-company-info {
             text-align: right;
             font-size: 9pt;
+            min-width: 40%;
         }
 
-        .pdf-details {
+        .invoice-a4-details {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
             margin-bottom: 15px;
         }
 
-        .pdf-items-table {
+        .invoice-a4-items-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 15px;
             font-size: 9pt;
+            table-layout: fixed;
         }
 
-        .pdf-items-table th {
+        .invoice-a4-items-table th {
             background: #4361ee;
             color: white;
             padding: 8px;
@@ -938,28 +943,34 @@
             font-weight: bold;
         }
 
-        .pdf-items-table td {
+        .invoice-a4-items-table td {
             padding: 8px;
             border-bottom: 1px solid #ddd;
+            word-wrap: break-word;
         }
 
-        .pdf-totals {
+        .invoice-a4-items-table th:nth-child(1) { width: 50%; } /* Description */
+        .invoice-a4-items-table th:nth-child(2) { width: 15%; } /* Quantité */
+        .invoice-a4-items-table th:nth-child(3) { width: 20%; } /* Prix unitaire */
+        .invoice-a4-items-table th:nth-child(4) { width: 15%; } /* Total */
+
+        .invoice-a4-totals {
             width: 100%;
             max-width: 250px;
             margin-left: auto;
             font-size: 9pt;
         }
 
-        .pdf-totals tr td {
+        .invoice-a4-totals tr td {
             padding: 4px 0;
         }
 
-        .pdf-totals tr:last-child {
+        .invoice-a4-totals tr:last-child {
             font-weight: bold;
             border-top: 2px solid #4361ee;
         }
 
-        .pdf-footer {
+        .invoice-a4-footer {
             margin-top: 20px;
             text-align: center;
             color: #666;
@@ -967,17 +978,105 @@
             border-top: 1px solid #eee;
             padding-top: 10px;
         }
-        
+
+        /* Optimisation pour impression */
+        @media print {
+            .invoice-a4-preview {
+                box-shadow: none;
+                margin: 0;
+                padding: 15mm;
+                width: 100%;
+                height: 100%;
+            }
+            
+            body {
+                background: white;
+            }
+        }
+
         /* Styles pour les petits écrans */
-        @media (max-width: 576px) {
-            .pdf-optimized {
+        @media (max-width: 768px) {
+            .invoice-a4-preview {
                 padding: 10mm;
                 font-size: 9pt;
             }
             
-            .pdf-title {
+            .invoice-a4-title {
                 font-size: 16pt;
             }
+            
+            .invoice-a4-header {
+                flex-direction: column;
+            }
+            
+            .invoice-a4-company-info {
+                text-align: left;
+                margin-top: 10px;
+            }
+            
+            .invoice-a4-details {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Styles pour la facture spécifique */
+        .invoice-simple {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .invoice-simple-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .invoice-simple-number {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .invoice-simple-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .invoice-simple-divider {
+            border-top: 1px solid #333;
+            margin: 20px 0;
+        }
+        
+        .invoice-simple-billed-to {
+            margin-bottom: 30px;
+        }
+        
+        .invoice-simple-payment-details {
+            margin-bottom: 30px;
+        }
+        
+        .invoice-simple-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .invoice-simple-table th, .invoice-simple-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .invoice-simple-total-row {
+            font-weight: bold;
+        }
+        
+        .invoice-simple-footer {
+            text-align: center;
+            margin-top: 30px;
+            font-style: italic;
         }
     </style>
 </head>
@@ -2177,10 +2276,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // =============================================
-        // SERVICE JSONBin.io
+        // SERVICE JSONBin.io - BASE DE DONNÉES CENTRALISÉE
         // =============================================
 
-        // ⚠️ CONFIGURATION JSONBIN - À MODIFIER ⚠️
+        // ⚠️ CONFIGURATION JSONBIN - À MODIFIER AVEC VOS CLÉS ⚠️
         const JSONBIN_CONFIG = {
             // Remplacer avec vos vraies clés depuis jsonbin.io
             API_KEY: '$2a$10$ubC0V678cM4EzyoX5LcEf.rE022jjEWgmStZ6ZgcVd/B30AURMxHa', // Votre Secret Key
@@ -2298,13 +2397,19 @@
                             address: '123 Avenue de la République, 75011 Paris',
                             ifu: 'IFU123456789',
                             registrationDate: new Date().toISOString(),
-                            status: 'validated'
+                            status: 'validated',
+                            logo: null
                         }
                     ],
                     candidates: [],
                     invoices: [],
                     payments: [],
-                    messages: []
+                    messages: [],
+                    // Stockage des mots de passe (en clair pour la démo - À CHANGER EN PRODUCTION)
+                    passwords: {
+                        'admin@efacture.com': 'admin123',
+                        'contact@excellence-auto.fr': 'auto123'
+                    }
                 };
             }
         };
@@ -2319,6 +2424,7 @@
             invoices: [],
             payments: [],
             messages: [],
+            passwords: {},
             
             async init() {
                 try {
@@ -2328,6 +2434,7 @@
                     this.invoices = data.invoices || [];
                     this.payments = data.payments || [];
                     this.messages = data.messages || [];
+                    this.passwords = data.passwords || {};
                     
                     console.log(`🏫 ${this.drivingSchools.length} auto-école(s) chargée(s)`);
                     console.log(`👥 ${this.candidates.length} candidat(s) chargé(s)`);
@@ -2341,6 +2448,7 @@
                     this.invoices = backupData.invoices || [];
                     this.payments = backupData.payments || [];
                     this.messages = backupData.messages || [];
+                    this.passwords = backupData.passwords || {};
                 }
             },
             
@@ -2351,7 +2459,8 @@
                         candidates: this.candidates,
                         invoices: this.invoices,
                         payments: this.payments,
-                        messages: this.messages
+                        messages: this.messages,
+                        passwords: this.passwords
                     };
                     
                     await JsonBinStorage.saveData(data);
@@ -2363,6 +2472,36 @@
             
             generateId: function() {
                 return Date.now().toString(36) + Math.random().toString(36).substr(2);
+            },
+            
+            // Méthodes pour gérer les données par auto-école
+            getSchoolData(schoolId) {
+                return {
+                    candidates: this.candidates.filter(c => c.schoolId === schoolId),
+                    invoices: this.invoices.filter(i => i.schoolId === schoolId),
+                    payments: this.payments.filter(p => p.schoolId === schoolId)
+                };
+            },
+            
+            // Authentification
+            authenticate(email, password) {
+                return this.passwords[email] === password;
+            },
+            
+            // Inscription d'une nouvelle auto-école
+            registerSchool(schoolData, password) {
+                // Vérifier si l'email existe déjà
+                if (this.drivingSchools.find(s => s.email === schoolData.email)) {
+                    throw new Error('Une auto-école avec cet email existe déjà');
+                }
+                
+                // Ajouter l'auto-école
+                this.drivingSchools.push(schoolData);
+                
+                // Enregistrer le mot de passe
+                this.passwords[schoolData.email] = password;
+                
+                return schoolData;
             }
         };
 
@@ -2963,7 +3102,15 @@
             try {
                 const school = database.drivingSchools.find(s => s.id === schoolId);
                 if (school && confirm(`Êtes-vous sûr de vouloir supprimer l'auto-école "${school.name}" ?`)) {
+                    // Supprimer l'auto-école et toutes ses données associées
                     database.drivingSchools = database.drivingSchools.filter(s => s.id !== schoolId);
+                    database.candidates = database.candidates.filter(c => c.schoolId !== schoolId);
+                    database.invoices = database.invoices.filter(i => i.schoolId !== schoolId);
+                    database.payments = database.payments.filter(p => p.schoolId !== schoolId);
+                    
+                    // Supprimer le mot de passe
+                    delete database.passwords[school.email];
+                    
                     await database.save();
                     loadData();
                     showNotification('Auto-école supprimée avec succès !');
@@ -3001,49 +3148,52 @@
             
             const invoicePreview = document.getElementById('invoice-preview-content');
             invoicePreview.innerHTML = `
-                <div class="pdf-optimized" id="invoice-to-print">
-                    <div class="pdf-header">
+                <div class="invoice-simple" id="invoice-to-print">
+                    <div class="invoice-simple-header">
+                        <h1># FACTURE</h1>
+                    </div>
+                    
+                    <div class="invoice-simple-number">
+                        <p><strong>N° ${invoice.number}</strong></p>
+                    </div>
+                    
+                    <div class="invoice-simple-details">
                         <div>
-                            <h1 class="pdf-title">FACTURE</h1>
-                            <p class="mb-0"><strong>N° ${invoice.number}</strong></p>
-                            <p class="mb-0">Date: ${formatDate(invoice.date)}</p>
-                            <p class="mb-0">Échéance: ${formatDate(invoice.dueDate)}</p>
-                            <p class="mb-0">Catégorie: ${invoice.licenseCategory || 'Non spécifiée'}</p>
+                            <p><strong>Date:</strong> ${formatDate(invoice.date)}</p>
+                            <p><strong>Échéance:</strong> ${formatDate(invoice.dueDate)}</p>
                         </div>
-                        <div class="pdf-company-info">
-                            ${school.logo ? `<img src="${school.logo}" alt="Logo ${school.name}" class="school-logo mb-2" style="max-width: 120px; max-height: 60px;">` : ''}
-                            <h4>${school.name || 'Auto-École'}</h4>
-                            <p class="mb-0">${school.address || ''}</p>
-                            <p class="mb-0">${school.phone || ''}</p>
-                            <p class="mb-0">${school.email || ''}</p>
-                            <p class="mb-0">IFU: ${school.ifu || ''}</p>
+                        <div>
+                            <p><strong>Catégorie:</strong> ${invoice.licenseCategory || 'Permis C'}</p>
                         </div>
                     </div>
                     
-                    <div class="pdf-details">
-                        <div>
-                            <h5>Facturé à:</h5>
-                            <p class="mb-1"><strong>${candidate.firstName} ${candidate.lastName}</strong></p>
-                            <p class="mb-1">${candidate.email || ''}</p>
-                            <p class="mb-1">${candidate.phone || ''}</p>
-                            <p class="mb-0">${candidate.address || ''}</p>
-                        </div>
-                        <div>
-                            <h5>Détails de paiement:</h5>
-                            <p class="mb-1"><strong>Méthode:</strong> ${invoice.paymentMethod}</p>
-                            <p class="mb-1"><strong>Statut:</strong> ${invoice.status === 'paid' ? 'Payé' : 'Validé'}</p>
-                            <p class="mb-1"><strong>Montant à payer:</strong> ${formatCFA(invoice.totalAmount)}</p>
-                            <p class="mb-0"><strong>Reste à payer:</strong> ${formatCFA(remainingAmount)}</p>
-                        </div>
+                    <div class="invoice-simple-divider"></div>
+                    
+                    <div class="invoice-simple-billed-to">
+                        <h2>## Facturé à:</h2>
+                        <h3>### ${candidate.firstName} ${candidate.lastName}</h3>
+                        <p>${candidate.email || ''}</p>
+                        <p>${candidate.phone || ''}</p>
+                        <p>${candidate.address || ''}</p>
                     </div>
                     
-                    <table class="pdf-items-table">
+                    <div class="invoice-simple-divider"></div>
+                    
+                    <div class="invoice-simple-payment-details">
+                        <h2>## Détails de paiement:</h2>
+                        <p><strong>Méthode:</strong> ${invoice.paymentMethod}</p>
+                        <p><strong>Statut:</strong> ${invoice.status === 'paid' ? 'Payé' : 'Validé'}</p>
+                        <p><strong>Montant à payer:</strong> ${formatCFA(invoice.totalAmount)}</p>
+                        <p><strong>Reste à payer:</strong> ${formatCFA(remainingAmount)}</p>
+                    </div>
+                    
+                    <table class="invoice-simple-table">
                         <thead>
                             <tr>
-                                <th style="width: 50%;">Description</th>
-                                <th style="width: 15%;">Quantité</th>
-                                <th style="width: 20%;">Prix unitaire</th>
-                                <th style="width: 15%;">Total</th>
+                                <th>Description</th>
+                                <th>Quantité</th>
+                                <th>Prix unitaire</th>
+                                <th>Total</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -3055,27 +3205,24 @@
                                     <td>${formatCFA(item.total)}</td>
                                 </tr>
                             `).join('')}
+                            <tr>
+                                <td colspan="3">Sous-total:</td>
+                                <td>${formatCFA(invoice.subtotal)}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3">TVA (0%):</td>
+                                <td>0 FCFA</td>
+                            </tr>
+                            <tr class="invoice-simple-total-row">
+                                <td colspan="3"><strong>Total:</strong></td>
+                                <td><strong>${formatCFA(invoice.totalAmount)}</strong></td>
+                            </tr>
                         </tbody>
                     </table>
                     
-                    <table class="pdf-totals">
-                        <tr>
-                            <td>Sous-total:</td>
-                            <td class="text-end">${formatCFA(invoice.subtotal)}</td>
-                        </tr>
-                        <tr>
-                            <td>TVA (0%):</td>
-                            <td class="text-end">${formatCFA(invoice.taxAmount)}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Total:</strong></td>
-                            <td class="text-end"><strong>${formatCFA(invoice.totalAmount)}</strong></td>
-                        </tr>
-                    </table>
-                    
-                    <div class="pdf-footer">
+                    <div class="invoice-simple-footer">
                         <p>Merci de votre confiance !</p>
-                        <p>Pour toute question concernant cette facture, veuillez contacter ${school.name || 'notre auto-école'}.</p>
+                        <p>Pour toute question concernant cette facture, veuillez contacter ${school.name || 'TELLA'}.</p>
                     </div>
                 </div>
             `;
@@ -3089,85 +3236,207 @@
         function downloadInvoicePDF(invoiceId) {
             const invoice = database.invoices.find(i => i.id === invoiceId);
             if (!invoice) return;
-            
+
             showNotification(`Génération du PDF pour la facture ${invoice.number}...`, 'warning');
+
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
             
-            const element = document.getElementById('invoice-to-print');
+            const candidate = database.candidates.find(c => c.id === invoice.candidateId) || {};
+            const school = database.drivingSchools.find(s => s.id === invoice.schoolId) || {};
+            const amountPaid = invoice.amountPaid || 0;
+            const remainingAmount = invoice.totalAmount - amountPaid;
+
+            // Configuration des dimensions
+            const margin = 15;
+            const pageWidth = 210;
+            const contentWidth = pageWidth - (2 * margin);
+            let yPosition = margin;
+
+            // Couleurs professionnelles
+            const primaryColor = [0, 0, 0]; // Noir pour correspondre au design simple
+            const secondaryColor = [100, 100, 100]; // Gris
+            const accentColor = [0, 0, 0]; // Noir
+
+            // ==================== TITRE PRINCIPAL ====================
+            pdf.setTextColor(...accentColor);
+            pdf.setFontSize(20);
+            pdf.setFont(undefined, 'bold');
+            pdf.text('# FACTURE', margin, yPosition);
+            yPosition += 10;
+
+            // ==================== NUMÉRO DE FACTURE ====================
+            pdf.setFontSize(12);
+            pdf.setFont(undefined, 'bold');
+            pdf.text(`N° ${invoice.number}`, margin, yPosition);
+            yPosition += 8;
+
+            // ==================== INFORMATIONS FACTURE ====================
+            pdf.setFontSize(10);
+            pdf.setFont(undefined, 'normal');
             
-            const options = {
-                scale: 1.5,
-                useCORS: true,
-                logging: false,
-                width: element.scrollWidth,
-                height: element.scrollHeight,
-                windowWidth: element.scrollWidth,
-                windowHeight: element.scrollHeight,
-                backgroundColor: '#ffffff',
-                imageTimeout: 0,
-                removeContainer: true,
-                onclone: function(clonedDoc) {
-                    const clonedElement = clonedDoc.getElementById('invoice-to-print');
-                    if (clonedElement) {
-                        clonedElement.style.width = '210mm';
-                        clonedElement.style.minHeight = '297mm';
-                        clonedElement.style.padding = '15mm';
-                        clonedElement.style.margin = '0 auto';
-                        clonedElement.style.background = 'white';
-                        clonedElement.style.boxShadow = 'none';
-                        clonedElement.style.fontFamily = 'Arial, sans-serif';
-                        clonedElement.style.fontSize = '10pt';
-                        clonedElement.style.lineHeight = '1.3';
-                        
-                        const images = clonedElement.getElementsByTagName('img');
-                        for (let img of images) {
-                            img.style.maxWidth = '120px';
-                            img.style.maxHeight = '60px';
-                        }
-                    }
-                }
-            };
+            // Date et échéance
+            pdf.text(`Date: ${formatDate(invoice.date)}`, margin, yPosition);
+            pdf.text(`Échéance: ${formatDate(invoice.dueDate)}`, margin + 70, yPosition);
+            yPosition += 5;
             
-            html2canvas(element, options).then(canvas => {
-                const imgData = canvas.toDataURL('image/jpeg', 0.7);
-                
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                
-                const imgWidth = 210;
-                const pageHeight = 295;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                
-                let heightLeft = imgHeight;
-                let position = 0;
-                
-                pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-                
-                while (heightLeft >= 0) {
-                    position = heightLeft - imgHeight;
+            // Catégorie
+            pdf.text(`Catégorie: ${invoice.licenseCategory || 'Permis C'}`, margin, yPosition);
+            yPosition += 10;
+
+            // Ligne de séparation
+            pdf.setDrawColor(0, 0, 0);
+            pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+            yPosition += 10;
+
+            // ==================== FACTURÉ À ====================
+            pdf.setFont(undefined, 'bold');
+            pdf.text('## Facturé à:', margin, yPosition);
+            yPosition += 7;
+            
+            pdf.setFont(undefined, 'bold');
+            pdf.text(`### ${candidate.firstName} ${candidate.lastName}`, margin, yPosition);
+            yPosition += 5;
+            
+            pdf.setFont(undefined, 'normal');
+            if (candidate.email) {
+                pdf.text(candidate.email, margin, yPosition);
+                yPosition += 5;
+            }
+            
+            if (candidate.phone) {
+                pdf.text(candidate.phone, margin, yPosition);
+                yPosition += 5;
+            }
+            
+            if (candidate.address) {
+                pdf.text(candidate.address, margin, yPosition);
+                yPosition += 5;
+            }
+
+            yPosition += 5;
+
+            // Ligne de séparation
+            pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+            yPosition += 10;
+
+            // ==================== DÉTAILS DE PAIEMENT ====================
+            pdf.setFont(undefined, 'bold');
+            pdf.text('## Détails de paiement:', margin, yPosition);
+            yPosition += 7;
+            
+            pdf.setFont(undefined, 'normal');
+            pdf.text(`Méthode: ${invoice.paymentMethod}`, margin, yPosition);
+            yPosition += 5;
+            
+            pdf.text(`Statut: ${invoice.status === 'paid' ? 'Payé' : 'Validé'}`, margin, yPosition);
+            yPosition += 5;
+            
+            pdf.text(`Montant à payer: ${formatCFA(invoice.totalAmount)}`, margin, yPosition);
+            yPosition += 5;
+            
+            pdf.text(`Reste à payer: ${formatCFA(remainingAmount)}`, margin, yPosition);
+            yPosition += 10;
+
+            // ==================== TABLEAU DES ARTICLES ====================
+            const tableTop = yPosition;
+            
+            // En-tête du tableau
+            pdf.setFillColor(240, 240, 240);
+            pdf.rect(margin, tableTop, contentWidth, 8, 'F');
+            
+            pdf.setTextColor(0, 0, 0);
+            pdf.setFontSize(9);
+            pdf.setFont(undefined, 'bold');
+            
+            // Colonnes
+            pdf.text('Description', margin + 2, tableTop + 5);
+            pdf.text('Quantité', margin + 100, tableTop + 5);
+            pdf.text('Prix unitaire', margin + 125, tableTop + 5);
+            pdf.text('Total', margin + 165, tableTop + 5);
+            
+            yPosition = tableTop + 8;
+            
+            // Articles
+            pdf.setTextColor(0, 0, 0);
+            pdf.setFont(undefined, 'normal');
+            
+            invoice.items.forEach((item, index) => {
+                if (yPosition > 250) {
                     pdf.addPage();
-                    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-                    heightLeft -= pageHeight;
+                    yPosition = margin;
                 }
                 
-                const pdfBlob = pdf.output('blob');
-                const fileSize = pdfBlob.size / 1024 / 1024;
+                // Ligne d'article
+                pdf.text(item.description.substring(0, 40), margin + 2, yPosition + 5);
+                pdf.text(item.quantity.toString(), margin + 100, yPosition + 5);
+                pdf.text(formatCFA(item.price), margin + 125, yPosition + 5);
+                pdf.text(formatCFA(item.total), margin + 165, yPosition + 5);
                 
-                if (fileSize > 1) {
-                    showNotification('La facture est trop volumineuse. Optimisation en cours...', 'warning');
-                    const lowQualityImgData = canvas.toDataURL('image/jpeg', 0.5);
-                    const pdfLow = new jsPDF('p', 'mm', 'a4');
-                    pdfLow.addImage(lowQualityImgData, 'JPEG', 0, 0, imgWidth, imgHeight);
-                    pdfLow.save(`facture-${invoice.number}.pdf`);
-                    showNotification(`Facture ${invoice.number} téléchargée (taille réduite) !`);
-                } else {
-                    pdf.save(`facture-${invoice.number}.pdf`);
-                    showNotification(`Facture ${invoice.number} téléchargée avec succès ! (${fileSize.toFixed(2)} Mo)`);
-                }
-            }).catch(error => {
-                console.error('Erreur lors de la génération du PDF:', error);
-                showNotification('Erreur lors de la génération du PDF', 'error');
+                // Ligne séparatrice
+                pdf.setDrawColor(200, 200, 200);
+                pdf.line(margin, yPosition + 7, pageWidth - margin, yPosition + 7);
+                
+                yPosition += 8;
             });
+
+            yPosition += 5;
+
+            // ==================== TOTAUX ====================
+            const totalsX = margin + 120;
+            
+            pdf.setFontSize(10);
+            pdf.setTextColor(...secondaryColor);
+            
+            // Sous-total
+            pdf.text('Sous-total:', totalsX, yPosition);
+            pdf.setTextColor(...accentColor);
+            pdf.text(formatCFA(invoice.subtotal), totalsX + 25, yPosition);
+            yPosition += 5;
+            
+            // TVA
+            pdf.setTextColor(...secondaryColor);
+            pdf.text('TVA (0%):', totalsX, yPosition);
+            pdf.setTextColor(...accentColor);
+            pdf.text('0 FCFA', totalsX + 25, yPosition);
+            yPosition += 5;
+            
+            // Ligne de séparation
+            pdf.setDrawColor(0, 0, 0);
+            pdf.line(totalsX, yPosition + 2, totalsX + 50, yPosition + 2);
+            yPosition += 4;
+            
+            // Total
+            pdf.setFontSize(11);
+            pdf.setFont(undefined, 'bold');
+            pdf.setTextColor(0, 0, 0);
+            pdf.text('Total:', totalsX, yPosition);
+            pdf.text(formatCFA(invoice.totalAmount), totalsX + 25, yPosition);
+            yPosition += 15;
+
+            // ==================== PIED DE PAGE ====================
+            const footerY = 270;
+            
+            pdf.setFontSize(8);
+            pdf.setTextColor(...secondaryColor);
+            pdf.text('Merci de votre confiance !', pageWidth / 2, footerY, { align: 'center' });
+            pdf.text(`Pour toute question concernant cette facture, veuillez contacter ${school.name || 'TELLA'}.`, pageWidth / 2, footerY + 5, { align: 'center' });
+
+            // ==================== SAUVEGARDE ====================
+            const fileName = `facture-${cleanFileName(candidate.firstName)}-${cleanFileName(candidate.lastName)}-${invoice.number}.pdf`;
+            
+            pdf.save(fileName);
+            showNotification(`Facture ${invoice.number} téléchargée avec succès !`);
+        }
+
+        // Fonction utilitaire pour nettoyer les noms de fichiers
+        function cleanFileName(name) {
+            return name
+                .toLowerCase()
+                .replace(/\s+/g, '-')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9-]/g, '');
         }
         
         async function markAsPaid(invoiceId) {
@@ -3277,8 +3546,9 @@
                 return;
             }
             
-            if (file.size > 500 * 1024) {
-                showNotification('L\'image est trop volumineuse. Veuillez choisir une image de moins de 500KB.', 'error');
+            // Limite à 3 Mo
+            if (file.size > 3 * 1024 * 1024) {
+                showNotification('L\'image est trop volumineuse. Veuillez choisir une image de moins de 3 Mo.', 'error');
                 return;
             }
             
@@ -3386,23 +3656,28 @@
                         showNotification('Identifiants administrateur incorrects', 'error');
                     }
                 } else {
-                    const school = database.drivingSchools.find(s => s.email === email);
-                    if (school) {
-                        if (school.status === 'pending') {
-                            showNotification('Votre compte est en attente de validation par l\'administrateur', 'warning');
-                            return;
+                    // Authentification auto-école
+                    if (database.authenticate(email, password)) {
+                        const school = database.drivingSchools.find(s => s.email === email);
+                        if (school) {
+                            if (school.status === 'pending') {
+                                showNotification('Votre compte est en attente de validation par l\'administrateur', 'warning');
+                                return;
+                            }
+                            
+                            localStorage.setItem('currentSchoolId', school.id);
+                            document.getElementById('current-school-name').textContent = school.name;
+                            document.getElementById('login-page').classList.remove('active');
+                            document.getElementById('main-app').classList.add('active');
+                            await loadData();
+                            loadCandidatesForInvoice();
+                            loadSchoolMessages();
+                            showNotification(`Connexion réussie ! Bienvenue ${school.name}`);
+                        } else {
+                            showNotification('Aucune auto-école trouvée avec cet email', 'error');
                         }
-                        
-                        localStorage.setItem('currentSchoolId', school.id);
-                        document.getElementById('current-school-name').textContent = school.name;
-                        document.getElementById('login-page').classList.remove('active');
-                        document.getElementById('main-app').classList.add('active');
-                        await loadData();
-                        loadCandidatesForInvoice();
-                        loadSchoolMessages();
-                        showNotification(`Connexion réussie ! Bienvenue ${school.name}`);
                     } else {
-                        showNotification('Aucune auto-école trouvée avec cet email', 'error');
+                        showNotification('Email ou mot de passe incorrect', 'error');
                     }
                 }
             } catch (error) {
@@ -3431,10 +3706,12 @@
                     address: document.getElementById('school-address').value,
                     ifu: document.getElementById('school-ifu').value,
                     registrationDate: new Date().toISOString(),
-                    status: 'pending'
+                    status: 'pending',
+                    logo: null
                 };
                 
-                database.drivingSchools.push(schoolData);
+                // Inscription de l'auto-école
+                database.registerSchool(schoolData, password);
                 await database.save();
                 
                 showNotification('Inscription réussie ! Votre compte sera activé après validation par notre équipe.');
@@ -3821,24 +4098,11 @@
         document.addEventListener('DOMContentLoaded', async function() {
             try {
                 await database.init();
-                
-                if (database.drivingSchools.length === 0) {
-                    const sampleSchool = {
-                        id: 'sample-school',
-                        name: 'Auto-École Excellence',
-                        owner: 'Jean Martin',
-                        email: 'contact@excellence-auto.fr',
-                        phone: '01 23 45 67 89',
-                        address: '123 Avenue de la République, 75011 Paris',
-                        ifu: 'IFU123456789',
-                        registrationDate: new Date().toISOString(),
-                        status: 'validated'
-                    };
-                    
-                    database.drivingSchools.push(sampleSchool);
-                    await database.save();
-                }
+                console.log('✅ Application E-FACTURE initialisée avec succès');
+                console.log('📊 Données chargées depuis JSONBin.io');
+                console.log('🌐 Synchronisation multi-appareils activée');
             } catch (error) {
+                console.error('❌ Erreur lors du chargement de l\'application:', error);
                 showNotification('Erreur lors du chargement de l\'application: ' + error.message, 'error');
             }
         });
