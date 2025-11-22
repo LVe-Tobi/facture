@@ -1114,7 +1114,7 @@
                                 <img id="navbar-logo" src="" alt="Logo" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; display: none;">
                                 <span id="navbar-initials" style="font-size: 0.8rem;">AE</span>
                             </div>
-                            <span id="current-school-name">Auto-École Excellence</span>
+                            <span id="current-school-name">Auto-École</span>
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="#parametres"><i class="fas fa-cog me-2"></i>Paramètres</a></li>
@@ -1406,7 +1406,7 @@
                                                     <label class="form-label">Logo de l'auto-école</label>
                                                     <div class="file-upload mb-3" id="logo-upload-area">
                                                         <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
-                                                        <p class="mb-1">Glissez-déposez votre logo ici</p>
+                                                        <p class="mb-1">Glissez-déposez votre logo ici (max. 3 Mo)</p>
                                                         <p class="text-muted small mb-2">ou</p>
                                                         <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('logo-upload').click()">
                                                             Choisir un fichier
@@ -1422,27 +1422,27 @@
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="settings-school-name" class="form-label">Nom de l'auto-école</label>
-                                                    <input type="text" class="form-control" id="settings-school-name" value="Auto-École Excellence" required>
+                                                    <input type="text" class="form-control" id="settings-school-name" placeholder="Entrez le nom de votre auto-école" required>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="settings-owner-name" class="form-label">Nom du propriétaire</label>
-                                                    <input type="text" class="form-control" id="settings-owner-name" value="Jean Martin" required>
+                                                    <input type="text" class="form-control" id="settings-owner-name" placeholder="Entrez le nom du propriétaire" required>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="settings-school-email" class="form-label">Email</label>
-                                                    <input type="email" class="form-control" id="settings-school-email" value="contact@excellence-auto.fr" required>
+                                                    <input type="email" class="form-control" id="settings-school-email" placeholder="email@auto-ecole.fr" required>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="settings-school-phone" class="form-label">Téléphone</label>
-                                                    <input type="text" class="form-control" id="settings-school-phone" value="01 23 45 67 89" required>
+                                                    <input type="text" class="form-control" id="settings-school-phone" placeholder="01 23 45 67 89" required>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="settings-school-address" class="form-label">Adresse</label>
-                                                    <textarea class="form-control" id="settings-school-address" rows="3" required>123 Avenue de la République, 75011 Paris</textarea>
+                                                    <textarea class="form-control" id="settings-school-address" rows="3" placeholder="Adresse complète de l'auto-école" required></textarea>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="settings-school-ifu" class="form-label">IFU (Identifiant Fiscal Unique)</label>
-                                                    <input type="text" class="form-control" id="settings-school-ifu" value="IFU123456789" required>
+                                                    <input type="text" class="form-control" id="settings-school-ifu" placeholder="IFU123456789" required>
                                                 </div>
                                                 <button type="submit" class="btn btn-primary">
                                                     <i class="fas fa-save me-1"></i> Enregistrer les modifications
@@ -1460,22 +1460,22 @@
                                             <form id="billing-settings-form">
                                                 <div class="mb-3">
                                                     <label for="invoice-prefix" class="form-label">Préfixe des factures</label>
-                                                    <input type="text" class="form-control" id="invoice-prefix" value="INV" required>
+                                                    <input type="text" class="form-control" id="invoice-prefix" placeholder="INV" required>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="tax-rate" class="form-label">Taux de TVA (%)</label>
-                                                    <input type="number" class="form-control" id="tax-rate" value="0" step="0.1" required>
+                                                    <input type="number" class="form-control" id="tax-rate" placeholder="0" step="0.1" required>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="currency" class="form-label">Devise</label>
                                                     <select class="form-select" id="currency" required>
-                                                        <option selected>Franc CFA (FCFA)</option>
-                                                        <option>Euro (€)</option>
-                                                        <option>Dollar ($)</option>
+                                                        <option value="FCFA" selected>Franc CFA (FCFA)</option>
+                                                        <option value="EUR">Euro (€)</option>
+                                                        <option value="USD">Dollar ($)</option>
                                                     </select>
                                                 </div>
                                                 <div class="mb-3 form-check">
-                                                    <input type="checkbox" class="form-check-input" id="auto-invoice" checked>
+                                                    <input type="checkbox" class="form-check-input" id="auto-invoice">
                                                     <label class="form-check-label" for="auto-invoice">Génération automatique des factures</label>
                                                 </div>
                                                 <button type="submit" class="btn btn-primary">
@@ -1862,18 +1862,18 @@
                                                 <div class="mb-3">
                                                     <label for="admin-currency" class="form-label">Devise par défaut</label>
                                                     <select class="form-select" id="admin-currency" required>
-                                                        <option selected>Franc CFA (FCFA)</option>
-                                                        <option>Euro (€)</option>
-                                                        <option>Dollar ($)</option>
+                                                        <option value="FCFA" selected>Franc CFA (FCFA)</option>
+                                                        <option value="EUR">Euro (€)</option>
+                                                        <option value="USD">Dollar ($)</option>
                                                     </select>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="admin-tax-rate" class="form-label">Taux de TVA par défaut (%)</label>
-                                                    <input type="number" class="form-control" id="admin-tax-rate" value="0" step="0.1" required>
+                                                    <input type="number" class="form-control" id="admin-tax-rate" placeholder="0" step="0.1" required>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="admin-invoice-prefix" class="form-label">Préfixe des factures</label>
-                                                    <input type="text" class="form-control" id="admin-invoice-prefix" value="INV" required>
+                                                    <input type="text" class="form-control" id="admin-invoice-prefix" placeholder="INV" required>
                                                 </div>
                                                 <button type="submit" class="btn btn-admin">
                                                     <i class="fas fa-save me-1"></i> Enregistrer les paramètres
@@ -1891,18 +1891,18 @@
                                             <form id="admin-security-settings-form">
                                                 <div class="mb-3">
                                                     <label for="admin-session-timeout" class="form-label">Délai d'expiration de session (minutes)</label>
-                                                    <input type="number" class="form-control" id="admin-session-timeout" value="30" required>
+                                                    <input type="number" class="form-control" id="admin-session-timeout" placeholder="30" required>
                                                 </div>
                                                 <div class="mb-3 form-check">
-                                                    <input type="checkbox" class="form-check-input" id="admin-two-factor" checked>
+                                                    <input type="checkbox" class="form-check-input" id="admin-two-factor">
                                                     <label class="form-check-label" for="admin-two-factor">Activer l'authentification à deux facteurs</label>
                                                 </div>
                                                 <div class="mb-3 form-check">
-                                                    <input type="checkbox" class="form-check-input" id="admin-email-notifications" checked>
+                                                    <input type="checkbox" class="form-check-input" id="admin-email-notifications">
                                                     <label class="form-check-label" for="admin-email-notifications">Activer les notifications par email</label>
                                                     <div class="mb-3">
                                                         <label for="admin-email" class="form-label">Email de notification</label>
-                                                        <input type="email" class="form-control" id="admin-email" value="admin@efacture.com" required>
+                                                        <input type="email" class="form-control" id="admin-email" placeholder="admin@efacture.com" required>
                                                     </div>
                                                 </div>
                                                 <button type="submit" class="btn btn-admin">
@@ -1932,23 +1932,23 @@
                     <form id="add-candidate-form">
                         <div class="mb-3">
                             <label for="candidateLastName" class="form-label">Nom</label>
-                            <input type="text" class="form-control" id="candidateLastName" required>
+                            <input type="text" class="form-control" id="candidateLastName" placeholder="Entrez le nom" required>
                         </div>
                         <div class="mb-3">
                             <label for="candidateFirstName" class="form-label">Prénom</label>
-                            <input type="text" class="form-control" id="candidateFirstName" required>
+                            <input type="text" class="form-control" id="candidateFirstName" placeholder="Entrez le prénom" required>
                         </div>
                         <div class="mb-3">
                             <label for="candidateEmail" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="candidateEmail" required>
+                            <input type="email" class="form-control" id="candidateEmail" placeholder="email@exemple.fr" required>
                         </div>
                         <div class="mb-3">
                             <label for="candidatePhone" class="form-label">Téléphone</label>
-                            <input type="text" class="form-control" id="candidatePhone" required>
+                            <input type="text" class="form-control" id="candidatePhone" placeholder="01 23 45 67 89" required>
                         </div>
                         <div class="mb-3">
                             <label for="candidateAddress" class="form-label">Adresse</label>
-                            <textarea class="form-control" id="candidateAddress" rows="2"></textarea>
+                            <textarea class="form-control" id="candidateAddress" rows="2" placeholder="Adresse du candidat"></textarea>
                         </div>
                     </form>
                 </div>
@@ -2126,23 +2126,23 @@
                         <input type="hidden" id="edit-candidate-id">
                         <div class="mb-3">
                             <label for="edit-candidateLastName" class="form-label">Nom</label>
-                            <input type="text" class="form-control" id="edit-candidateLastName" required>
+                            <input type="text" class="form-control" id="edit-candidateLastName" placeholder="Entrez le nom" required>
                         </div>
                         <div class="mb-3">
                             <label for="edit-candidateFirstName" class="form-label">Prénom</label>
-                            <input type="text" class="form-control" id="edit-candidateFirstName" required>
+                            <input type="text" class="form-control" id="edit-candidateFirstName" placeholder="Entrez le prénom" required>
                         </div>
                         <div class="mb-3">
                             <label for="edit-candidateEmail" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="edit-candidateEmail" required>
+                            <input type="email" class="form-control" id="edit-candidateEmail" placeholder="email@exemple.fr" required>
                         </div>
                         <div class="mb-3">
                             <label for="edit-candidatePhone" class="form-label">Téléphone</label>
-                            <input type="text" class="form-control" id="edit-candidatePhone" required>
+                            <input type="text" class="form-control" id="edit-candidatePhone" placeholder="01 23 45 67 89" required>
                         </div>
                         <div class="mb-3">
                             <label for="edit-candidateAddress" class="form-label">Adresse</label>
-                            <textarea class="form-control" id="edit-candidateAddress" rows="2"></textarea>
+                            <textarea class="form-control" id="edit-candidateAddress" rows="2" placeholder="Adresse du candidat"></textarea>
                         </div>
                     </form>
                 </div>
@@ -2288,19 +2288,7 @@
 
             getDefaultData() {
                 return {
-                    drivingSchools: [
-                        {
-                            id: 'sample-school',
-                            name: 'Auto-École Excellence',
-                            owner: 'Jean Martin',
-                            email: 'contact@excellence-auto.fr',
-                            phone: '01 23 45 67 89',
-                            address: '123 Avenue de la République, 75011 Paris',
-                            ifu: 'IFU123456789',
-                            registrationDate: new Date().toISOString(),
-                            status: 'validated'
-                        }
-                    ],
+                    drivingSchools: [],
                     candidates: [],
                     invoices: [],
                     payments: [],
@@ -3256,6 +3244,7 @@
         function updateNavbarLogo(school) {
             const navbarLogo = document.getElementById('navbar-logo');
             const navbarInitials = document.getElementById('navbar-initials');
+            const currentSchoolName = document.getElementById('current-school-name');
             
             if (school && school.logo) {
                 navbarLogo.src = school.logo;
@@ -3265,6 +3254,10 @@
                 navbarLogo.style.display = 'none';
                 navbarInitials.style.display = 'block';
                 navbarInitials.textContent = school ? school.name.substring(0, 2).toUpperCase() : 'AE';
+            }
+            
+            if (school) {
+                currentSchoolName.textContent = school.name || 'Auto-École';
             }
         }
         
@@ -3277,8 +3270,8 @@
                 return;
             }
             
-            if (file.size > 500 * 1024) {
-                showNotification('L\'image est trop volumineuse. Veuillez choisir une image de moins de 500KB.', 'error');
+            if (file.size > 3 * 1024 * 1024) {
+                showNotification('L\'image est trop volumineuse. Veuillez choisir une image de moins de 3 Mo.', 'error');
                 return;
             }
             
@@ -3821,23 +3814,6 @@
         document.addEventListener('DOMContentLoaded', async function() {
             try {
                 await database.init();
-                
-                if (database.drivingSchools.length === 0) {
-                    const sampleSchool = {
-                        id: 'sample-school',
-                        name: 'Auto-École Excellence',
-                        owner: 'Jean Martin',
-                        email: 'contact@excellence-auto.fr',
-                        phone: '01 23 45 67 89',
-                        address: '123 Avenue de la République, 75011 Paris',
-                        ifu: 'IFU123456789',
-                        registrationDate: new Date().toISOString(),
-                        status: 'validated'
-                    };
-                    
-                    database.drivingSchools.push(sampleSchool);
-                    await database.save();
-                }
             } catch (error) {
                 showNotification('Erreur lors du chargement de l\'application: ' + error.message, 'error');
             }
