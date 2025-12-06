@@ -2796,6 +2796,7 @@
                     console.log(`🏫 ${this.drivingSchools.length} auto-école(s) chargée(s)`);
                     console.log(`👥 ${this.candidates.length} candidat(s) chargé(s)`);
                     console.log(`🧾 ${this.invoices.length} facture(s) chargée(s)`);
+                    console.log(`📧 ${this.messages.length} message(s) chargé(s)`);
                     
                 } catch (error) {
                     console.error('Erreur initialisation:', error);
@@ -3089,10 +3090,14 @@
             const schoolMessagesList = document.getElementById('school-messages-list');
             const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
             
+            // Récupérer les messages pour cette école spécifique ET les messages à toutes les auto-écoles
             const schoolMessages = database.messages.filter(m => 
                 m.sender === 'admin' && 
-                (m.recipient === 'all' || m.recipient === currentSchoolId)
+                (m.recipient === currentSchoolId || m.recipient === 'all')
             );
+            
+            // Trier par date (plus récent d'abord)
+            schoolMessages.sort((a, b) => new Date(b.date) - new Date(a.date));
             
             // Marquer toutes les notifications comme lues quand on visite la page messages
             NotificationSystem.notifications.forEach(notification => {
@@ -3105,6 +3110,19 @@
             NotificationSystem.updateNotificationDropdown();
             NotificationSystem.updateSidebarMessageBadge();
             
+            // Mettre à jour les messages comme lus dans la base de données
+            schoolMessages.forEach(message => {
+                if (!message.readBy) {
+                    message.readBy = [];
+                }
+                if (!message.readBy.includes(currentSchoolId)) {
+                    message.readBy.push(currentSchoolId);
+                }
+            });
+            
+            // Sauvegarder les modifications
+            database.save();
+            
             if (schoolMessages.length === 0) {
                 schoolMessagesList.innerHTML = `
                     <div class="text-center py-5">
@@ -3115,20 +3133,18 @@
                 `;
             } else {
                 schoolMessagesList.innerHTML = schoolMessages.map(message => {
-                    const isUnread = !message.readBy || !message.readBy.includes(currentSchoolId);
+                    const recipientText = message.recipient === 'all' 
+                        ? 'À toutes les auto-écoles' 
+                        : 'À votre auto-école';
                     
                     return `
-                        <div class="message-item ${isUnread ? 'unread' : ''}">
+                        <div class="message-item">
                             <div class="message-sender">De: Administrateur</div>
+                            <div class="message-recipient"><small class="text-muted">${recipientText}</small></div>
                             <div class="message-date">${formatDateTime(message.date)}</div>
                             <div class="message-subject"><strong>${message.subject}</strong></div>
                             <div class="message-content">${message.content}</div>
                             <div class="message-actions">
-                                ${isUnread ? `
-                                <button class="btn btn-sm btn-outline-success" onclick="markAsRead('${message.id}')">
-                                    <i class="fas fa-check me-1"></i> Marquer comme lu
-                                </button>
-                                ` : ''}
                                 <button class="btn btn-sm btn-outline-primary" onclick="replyToMessage('${message.id}')">
                                     <i class="fas fa-reply me-1"></i> Répondre
                                 </button>
@@ -3136,27 +3152,6 @@
                         </div>
                     `;
                 }).join('');
-            }
-        }
-        
-        async function markAsRead(messageId) {
-            try {
-                const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
-                const message = database.messages.find(m => m.id === messageId);
-                
-                if (message) {
-                    if (!message.readBy) {
-                        message.readBy = [];
-                    }
-                    if (!message.readBy.includes(currentSchoolId)) {
-                        message.readBy.push(currentSchoolId);
-                        await database.save();
-                        loadSchoolMessages();
-                        showNotification('Message marqué comme lu');
-                    }
-                }
-            } catch (error) {
-                showNotification(error.message, 'error');
             }
         }
         
@@ -3184,24 +3179,26 @@
         
         async function sendAdminMessage(recipient, subject, content) {
             try {
-                const messageData = {
-                    id: database.generateId(),
-                    sender: 'admin',
-                    recipient: recipient,
-                    subject: subject,
-                    content: content,
-                    date: new Date().toISOString(),
-                    readBy: []
-                };
+                const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
                 
-                database.messages.push(messageData);
-                await database.save();
-                
-                // Envoyer des notifications aux auto-écoles concernées
                 if (recipient === 'all') {
-                    // Notification pour toutes les auto-écoles validées
-                    const schools = database.drivingSchools.filter(s => s.status === 'validated');
-                    schools.forEach(school => {
+                    // Pour toutes les auto-écoles validées
+                    const validatedSchools = database.drivingSchools.filter(s => s.status === 'validated');
+                    
+                    // Créer un message pour chaque auto-école
+                    validatedSchools.forEach(school => {
+                        const messageData = {
+                            id: database.generateId(),
+                            sender: 'admin',
+                            recipient: school.id,
+                            subject: subject,
+                            content: content,
+                            date: new Date().toISOString(),
+                            readBy: []
+                        };
+                        database.messages.push(messageData);
+                        
+                        // Envoyer une notification
                         NotificationSystem.addNotification(
                             'admin_message',
                             'Nouveau message de l\'administrateur',
@@ -3210,9 +3207,32 @@
                         );
                     });
                     
-                    messageData.readBy.push('admin');
+                    // Ajouter aussi un message général (optionnel)
+                    const generalMessage = {
+                        id: database.generateId(),
+                        sender: 'admin',
+                        recipient: 'all',
+                        subject: subject,
+                        content: content,
+                        date: new Date().toISOString(),
+                        readBy: []
+                    };
+                    database.messages.push(generalMessage);
+                    
                 } else {
-                    // Notification pour une auto-école spécifique
+                    // Pour une auto-école spécifique
+                    const messageData = {
+                        id: database.generateId(),
+                        sender: 'admin',
+                        recipient: recipient,
+                        subject: subject,
+                        content: content,
+                        date: new Date().toISOString(),
+                        readBy: []
+                    };
+                    database.messages.push(messageData);
+                    
+                    // Envoyer une notification
                     const school = database.drivingSchools.find(s => s.id === recipient);
                     if (school) {
                         NotificationSystem.addNotification(
@@ -3224,8 +3244,10 @@
                     }
                 }
                 
+                await database.save();
                 showNotification('Message envoyé avec succès !');
                 loadAdminMessages();
+                loadRecipients();
                 
             } catch (error) {
                 showNotification(error.message, 'error');
@@ -3988,14 +4010,31 @@
             
             const randomMessage = messages[Math.floor(Math.random() * messages.length)];
             
-            NotificationSystem.addNotification(
-                'admin_message',
-                'Message de l\'administrateur',
-                randomMessage,
-                '#messages'
-            );
+            // Créer un message de test pour toutes les auto-écoles
+            const validatedSchools = database.drivingSchools.filter(s => s.status === 'validated');
             
-            showNotification('Notification de test envoyée !');
+            validatedSchools.forEach(school => {
+                const messageData = {
+                    id: database.generateId(),
+                    sender: 'admin',
+                    recipient: school.id,
+                    subject: 'Message de test',
+                    content: randomMessage,
+                    date: new Date().toISOString(),
+                    readBy: []
+                };
+                database.messages.push(messageData);
+                
+                NotificationSystem.addNotification(
+                    'admin_message',
+                    'Message de test de l\'administrateur',
+                    randomMessage,
+                    '#messages'
+                );
+            });
+            
+            database.save();
+            showNotification('Message de test envoyé à toutes les auto-écoles !');
         }
 
         // =============================================
