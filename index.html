@@ -459,11 +459,6 @@
             color: var(--danger);
         }
         
-        .status-validated {
-            background: rgba(6, 214, 160, 0.2);
-            color: var(--success);
-        }
-        
         .status-waiting {
             background: rgba(255, 209, 102, 0.2);
             color: #e6a500;
@@ -978,6 +973,26 @@
             .pdf-title {
                 font-size: 16pt;
             }
+        }
+        
+        /* Styles pour les sélecteurs multiples */
+        .form-select[multiple] {
+            height: auto;
+            min-height: 120px;
+        }
+        
+        .form-select[multiple] option {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .form-select[multiple] option:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .form-select[multiple] option:checked {
+            background-color: #4361ee;
+            color: white;
         }
     </style>
 </head>
@@ -1610,6 +1625,9 @@
                                             <button class="btn btn-sm btn-admin" id="validate-all-btn">
                                                 <i class="fas fa-check me-1"></i> Valider Tous
                                             </button>
+                                            <button class="btn btn-sm btn-danger ms-2" onclick="resetDatabase()">
+                                                <i class="fas fa-redo me-1"></i> Réinit. BD
+                                            </button>
                                         </div>
                                         <div class="card-body">
                                             <div class="table-responsive">
@@ -1978,16 +1996,21 @@
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="licenseCategory" class="form-label">Catégorie de Permis</label>
-                                    <select class="form-select" id="licenseCategory" required>
-                                        <option value="">Sélectionnez une catégorie</option>
-                                        <option value="Permis A">Permis A (Moto)</option>
+                                    <label for="licenseCategory" class="form-label">Catégories de Permis <small class="text-muted">(Sélectionnez une ou plusieurs catégories)</small></label>
+                                    <select class="form-select" id="licenseCategory" multiple required size="5">
+                                        <option value="Permis A1">Permis A1 (Moto légère)</option>
+                                        <option value="Permis A2">Permis A2 (Moto moyenne)</option>
+                                        <option value="Permis A3">Permis A3 (Moto grosse cylindrée)</option>
                                         <option value="Permis B">Permis B (Voiture)</option>
+                                        <option value="Permis B1">Permis B1 (Quadricycle lourd)</option>
                                         <option value="Permis C">Permis C (Poids lourd)</option>
+                                        <option value="Permis CE">Permis CE (Poids lourd + remorque)</option>
                                         <option value="Permis D">Permis D (Bus)</option>
-                                        <option value="Permis BE">Permis BE (Remorque)</option>
-                                        <option value="Permis AM">Permis AM (Scooter)</option>
+                                        <option value="Permis D1">Permis D1 (Petit bus)</option>
+                                        <option value="Permis E(B)">Permis E(B) (Voiture + remorque)</option>
+                                        <option value="Permis F">Permis F (Tracteur)</option>
                                     </select>
+                                    <small class="form-text text-muted">Maintenez Ctrl (ou Cmd sur Mac) pour sélectionner plusieurs catégories</small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="invoiceDate" class="form-label">Date de facturation</label>
@@ -2177,14 +2200,12 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // =============================================
-        // SERVICE JSONBin.io
+        // SERVICE JSONBin.io - CONFIGURATION
         // =============================================
 
-        // ⚠️ CONFIGURATION JSONBIN - À MODIFIER ⚠️
         const JSONBIN_CONFIG = {
-            // Remplacer avec vos vraies clés depuis jsonbin.io
-            API_KEY: '$2a$10$ubC0V678cM4EzyoX5LcEf.rE022jjEWgmStZ6ZgcVd/B30AURMxHa', // Votre Secret Key
-            BIN_ID: '69138fb743b1c97be9a76abc', // Votre Bin ID
+            API_KEY: '$2a$10$ubC0V678cM4EzyoX5LcEf.rE022jjEWgmStZ6ZgcVd/B30AURMxHa',
+            BIN_ID: '69138fb743b1c97be9a76abc',
             BASE_URL: 'https://api.jsonbin.io/v3/b'
         };
 
@@ -2255,7 +2276,7 @@
                     console.error('❌ Erreur sauvegarde JSONBin:', error);
                     console.log('🔄 Sauvegarde locale de secours');
                     this.saveBackupData(data);
-                    throw new Error('Sauvegarde locale effectuée');
+                    return true;
                 } finally {
                     showLoading(false);
                 }
@@ -2281,6 +2302,7 @@
                 try {
                     localStorage.setItem('efacture_backup_data', JSON.stringify(data));
                     localStorage.setItem('efacture_backup_timestamp', new Date().toISOString());
+                    console.log('✅ Données sauvegardées localement');
                 } catch (error) {
                     console.error('Erreur sauvegarde locale:', error);
                 }
@@ -2288,17 +2310,36 @@
 
             getDefaultData() {
                 return {
-                    drivingSchools: [],
+                    drivingSchools: [
+                        {
+                            id: 'demo-school-1',
+                            name: 'Auto-École Excellence',
+                            owner: 'Jean Dupont',
+                            email: 'contact@autoecole-excellence.fr',
+                            phone: '01 23 45 67 89',
+                            address: '123 Rue de Paris, 75001 Paris',
+                            ifu: 'IFU123456789',
+                            registrationDate: new Date().toISOString(),
+                            status: 'validated',
+                            logo: null,
+                            password: 'demo123'
+                        }
+                    ],
                     candidates: [],
                     invoices: [],
                     payments: [],
-                    messages: []
+                    messages: [],
+                    systemSettings: {
+                        currency: 'FCFA',
+                        taxRate: 0,
+                        invoicePrefix: 'INV'
+                    }
                 };
             }
         };
 
         // =============================================
-        // BASE DE DONNÉES AVEC JSONBin
+        // BASE DE DONNÉES AMÉLIORÉE
         // =============================================
 
         const database = {
@@ -2307,19 +2348,34 @@
             invoices: [],
             payments: [],
             messages: [],
+            systemSettings: {
+                currency: 'FCFA',
+                taxRate: 0,
+                invoicePrefix: 'INV'
+            },
             
             async init() {
                 try {
                     const data = await JsonBinStorage.loadData();
+                    
                     this.drivingSchools = data.drivingSchools || [];
                     this.candidates = data.candidates || [];
                     this.invoices = data.invoices || [];
                     this.payments = data.payments || [];
                     this.messages = data.messages || [];
+                    this.systemSettings = data.systemSettings || {
+                        currency: 'FCFA',
+                        taxRate: 0,
+                        invoicePrefix: 'INV'
+                    };
                     
                     console.log(`🏫 ${this.drivingSchools.length} auto-école(s) chargée(s)`);
                     console.log(`👥 ${this.candidates.length} candidat(s) chargé(s)`);
                     console.log(`🧾 ${this.invoices.length} facture(s) chargée(s)`);
+                    
+                    this.drivingSchools.forEach((school, index) => {
+                        console.log(`Auto-école ${index + 1}: ${school.name} (${school.email}) - Status: ${school.status}`);
+                    });
                     
                 } catch (error) {
                     console.error('Erreur initialisation:', error);
@@ -2329,6 +2385,11 @@
                     this.invoices = backupData.invoices || [];
                     this.payments = backupData.payments || [];
                     this.messages = backupData.messages || [];
+                    this.systemSettings = backupData.systemSettings || {
+                        currency: 'FCFA',
+                        taxRate: 0,
+                        invoicePrefix: 'INV'
+                    };
                 }
             },
             
@@ -2339,18 +2400,42 @@
                         candidates: this.candidates,
                         invoices: this.invoices,
                         payments: this.payments,
-                        messages: this.messages
+                        messages: this.messages,
+                        systemSettings: this.systemSettings
                     };
                     
                     await JsonBinStorage.saveData(data);
+                    return true;
                 } catch (error) {
                     console.error('Erreur sauvegarde:', error);
-                    throw error;
+                    return false;
                 }
             },
             
             generateId: function() {
                 return Date.now().toString(36) + Math.random().toString(36).substr(2);
+            },
+            
+            findSchoolByEmail: function(email) {
+                return this.drivingSchools.find(school => 
+                    school.email.toLowerCase() === email.toLowerCase()
+                );
+            },
+            
+            async addSchool(schoolData) {
+                if (this.findSchoolByEmail(schoolData.email)) {
+                    throw new Error('Une auto-école avec cet email existe déjà');
+                }
+                
+                this.drivingSchools.push(schoolData);
+                const saved = await this.save();
+                
+                if (!saved) {
+                    this.drivingSchools = this.drivingSchools.filter(s => s.id !== schoolData.id);
+                    throw new Error('Erreur lors de l\'enregistrement de l\'auto-école');
+                }
+                
+                return schoolData;
             }
         };
 
@@ -2984,6 +3069,9 @@
             const school = database.drivingSchools.find(s => s.id === invoice.schoolId) || {};
             const amountPaid = invoice.amountPaid || 0;
             const remainingAmount = invoice.totalAmount - amountPaid;
+            const categoriesText = invoice.licenseCategories ? 
+                invoice.licenseCategories.join(', ') : 
+                invoice.licenseCategory || 'Non spécifiée';
             
             document.getElementById('invoice-number-title').textContent = invoice.number;
             
@@ -2996,7 +3084,7 @@
                             <p class="mb-0"><strong>N° ${invoice.number}</strong></p>
                             <p class="mb-0">Date: ${formatDate(invoice.date)}</p>
                             <p class="mb-0">Échéance: ${formatDate(invoice.dueDate)}</p>
-                            <p class="mb-0">Catégorie: ${invoice.licenseCategory || 'Non spécifiée'}</p>
+                            <p class="mb-0">Catégories: ${categoriesText}</p>
                         </div>
                         <div class="pdf-company-info">
                             ${school.logo ? `<img src="${school.logo}" alt="Logo ${school.name}" class="school-logo mb-2" style="max-width: 120px; max-height: 60px;">` : ''}
@@ -3325,6 +3413,107 @@
                 showNotification(error.message, 'error');
             }
         }
+        
+        async function loadSchoolSettings(schoolId) {
+            try {
+                const school = database.drivingSchools.find(s => s.id === schoolId);
+                if (!school) return;
+                
+                document.getElementById('settings-school-name').value = school.name || '';
+                document.getElementById('settings-owner-name').value = school.owner || '';
+                document.getElementById('settings-school-email').value = school.email || '';
+                document.getElementById('settings-school-phone').value = school.phone || '';
+                document.getElementById('settings-school-address').value = school.address || '';
+                document.getElementById('settings-school-ifu').value = school.ifu || '';
+                
+                if (school.logo) {
+                    const logoPreview = document.getElementById('logo-preview');
+                    const logoPreviewContainer = document.getElementById('logo-preview-container');
+                    logoPreview.src = school.logo;
+                    logoPreviewContainer.style.display = 'block';
+                }
+                
+            } catch (error) {
+                console.error('Erreur lors du chargement des paramètres:', error);
+            }
+        }
+        
+        // =============================================
+        // FONCTIONS DE VALIDATION
+        // =============================================
+        
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+        
+        function isValidPhone(phone) {
+            const phoneRegex = /^[0-9\s\-\+\.\(\)]{10,}$/;
+            return phoneRegex.test(phone.replace(/\s/g, ''));
+        }
+        
+        // =============================================
+        // FONCTION DE TEST JSONBin
+        // =============================================
+        
+        async function testJsonBinConnection() {
+            try {
+                showLoading(true);
+                console.log('🔍 Test de connexion JSONBin...');
+                
+                const response = await fetch(
+                    `${JSONBIN_CONFIG.BASE_URL}/${JSONBIN_CONFIG.BIN_ID}/latest`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            'X-Master-Key': JSONBIN_CONFIG.API_KEY,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Connexion JSONBin OK');
+                    console.log('📊 Données actuelles:', data.record);
+                    return true;
+                } else {
+                    console.error('❌ Connexion JSONBin échouée:', response.status);
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Erreur de test:', error);
+                return false;
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // =============================================
+        // FONCTION DE RÉINITIALISATION DE LA BASE DE DONNÉES
+        // =============================================
+        
+        async function resetDatabase() {
+            if (confirm('⚠️ ATTENTION : Cette action va réinitialiser toutes les données. Continuer ?')) {
+                try {
+                    showLoading(true);
+                    
+                    const defaultData = JsonBinStorage.getDefaultData();
+                    
+                    await JsonBinStorage.saveData(defaultData);
+                    
+                    await database.init();
+                    
+                    showNotification('Base de données réinitialisée avec succès !', 'success');
+                    location.reload();
+                    
+                } catch (error) {
+                    showNotification('Erreur lors de la réinitialisation: ' + error.message, 'error');
+                } finally {
+                    showLoading(false);
+                }
+            }
+        }
 
         // =============================================
         // GESTION DES ÉVÉNEMENTS
@@ -3363,14 +3552,21 @@
 
         document.getElementById('login-form').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const email = document.getElementById('login-email').value;
+            const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
             
             try {
                 if (userType === 'admin') {
+                    // Connexion administrateur
                     if (email === 'admin@efacture.com' && password === 'admin123') {
                         document.getElementById('login-page').classList.remove('active');
                         document.getElementById('admin-app').classList.add('active');
+                        
+                        // Initialiser les données après connexion
+                        if (database.drivingSchools.length === 0) {
+                            await database.init();
+                        }
+                        
                         await loadData();
                         loadAdminMessages();
                         loadRecipients();
@@ -3379,20 +3575,45 @@
                         showNotification('Identifiants administrateur incorrects', 'error');
                     }
                 } else {
-                    const school = database.drivingSchools.find(s => s.email === email);
+                    // Connexion auto-école
+                    const school = database.drivingSchools.find(s => 
+                        s.email.toLowerCase() === email.toLowerCase()
+                    );
+                    
                     if (school) {
+                        // Vérifier le mot de passe (dans un cas réel, utiliser le hachage)
+                        if (school.password !== password) {
+                            showNotification('Mot de passe incorrect', 'error');
+                            return;
+                        }
+                        
                         if (school.status === 'pending') {
                             showNotification('Votre compte est en attente de validation par l\'administrateur', 'warning');
                             return;
                         }
                         
+                        // Stocker l'ID de l'auto-école connectée
                         localStorage.setItem('currentSchoolId', school.id);
+                        localStorage.setItem('currentSchoolName', school.name);
+                        localStorage.setItem('currentSchoolEmail', school.email);
+                        
+                        // Mettre à jour l'interface
                         document.getElementById('current-school-name').textContent = school.name;
                         document.getElementById('login-page').classList.remove('active');
                         document.getElementById('main-app').classList.add('active');
+                        
+                        // Initialiser et charger les données
+                        if (database.candidates.length === 0) {
+                            await database.init();
+                        }
+                        
                         await loadData();
                         loadCandidatesForInvoice();
                         loadSchoolMessages();
+                        
+                        // Charger les paramètres de l'auto-école
+                        loadSchoolSettings(school.id);
+                        
                         showNotification(`Connexion réussie ! Bienvenue ${school.name}`);
                     } else {
                         showNotification('Aucune auto-école trouvée avec cet email', 'error');
@@ -3408,33 +3629,59 @@
             
             const password = document.getElementById('register-password').value;
             const confirmPassword = document.getElementById('confirm-password').value;
+            const email = document.getElementById('register-email').value.trim();
+            const phone = document.getElementById('register-phone').value.trim();
             
+            // Validation des données
             if (password !== confirmPassword) {
                 showNotification('Les mots de passe ne correspondent pas', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showNotification('Le mot de passe doit contenir au moins 6 caractères', 'error');
+                return;
+            }
+            
+            if (!isValidEmail(email)) {
+                showNotification('Veuillez entrer une adresse email valide', 'error');
+                return;
+            }
+            
+            if (!isValidPhone(phone)) {
+                showNotification('Veuillez entrer un numéro de téléphone valide', 'error');
                 return;
             }
             
             try {
                 const schoolData = {
                     id: database.generateId(),
-                    name: document.getElementById('school-name').value,
-                    owner: document.getElementById('owner-name').value,
-                    email: document.getElementById('register-email').value,
-                    phone: document.getElementById('register-phone').value,
-                    address: document.getElementById('school-address').value,
-                    ifu: document.getElementById('school-ifu').value,
+                    name: document.getElementById('school-name').value.trim(),
+                    owner: document.getElementById('owner-name').value.trim(),
+                    email: email,
+                    phone: phone,
+                    address: document.getElementById('school-address').value.trim(),
+                    ifu: document.getElementById('school-ifu').value.trim(),
                     registrationDate: new Date().toISOString(),
-                    status: 'pending'
+                    status: 'pending',
+                    password: password
                 };
                 
-                database.drivingSchools.push(schoolData);
-                await database.save();
+                // Validation des données
+                if (!schoolData.name || !schoolData.email || !schoolData.phone) {
+                    showNotification('Veuillez remplir tous les champs obligatoires', 'error');
+                    return;
+                }
                 
-                showNotification('Inscription réussie ! Votre compte sera activé après validation par notre équipe.');
+                const savedSchool = await database.addSchool(schoolData);
+                
+                showNotification(`Inscription réussie ! Votre compte "${savedSchool.name}" sera activé après validation par notre équipe.`);
                 document.getElementById('register-page').classList.remove('active');
                 document.getElementById('login-page').classList.add('active');
                 
+                // Réinitialiser le formulaire
                 document.getElementById('register-form').reset();
+                
             } catch (error) {
                 showNotification(error.message, 'error');
             }
@@ -3445,6 +3692,8 @@
             document.getElementById('main-app').classList.remove('active');
             document.getElementById('login-page').classList.add('active');
             localStorage.removeItem('currentSchoolId');
+            localStorage.removeItem('currentSchoolName');
+            localStorage.removeItem('currentSchoolEmail');
             showNotification('Déconnexion réussie');
         });
 
@@ -3553,19 +3802,23 @@
             try {
                 const currentSchoolId = localStorage.getItem('currentSchoolId') || 'current-school';
                 const candidateId = document.getElementById('invoiceCandidate').value;
-                const licenseCategory = document.getElementById('licenseCategory').value;
+                const licenseCategorySelect = document.getElementById('licenseCategory');
                 const invoiceDate = document.getElementById('invoiceDate').value;
                 const dueDate = document.getElementById('invoiceDueDate').value;
                 const paymentMethod = document.getElementById('invoicePayment').value;
                 const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
+                
+                // Récupérer les catégories sélectionnées (multiple)
+                const selectedCategories = Array.from(licenseCategorySelect.selectedOptions)
+                    .map(option => option.value);
                 
                 if (!candidateId) {
                     showNotification('Veuillez sélectionner un candidat', 'error');
                     return;
                 }
                 
-                if (!licenseCategory) {
-                    showNotification('Veuillez sélectionner une catégorie de permis', 'error');
+                if (selectedCategories.length === 0) {
+                    showNotification('Veuillez sélectionner au moins une catégorie de permis', 'error');
                     return;
                 }
                 
@@ -3616,8 +3869,9 @@
                     id: database.generateId(),
                     schoolId: currentSchoolId,
                     candidateId: candidateId,
-                    licenseCategory: licenseCategory,
-                    number: 'INV-' + database.generateId().substring(0, 8).toUpperCase(),
+                    licenseCategories: selectedCategories,
+                    licenseCategory: selectedCategories.join(', '),
+                    number: `${database.systemSettings.invoicePrefix}-${database.generateId().substring(0, 8).toUpperCase()}`,
                     date: invoiceDate,
                     dueDate: dueDate,
                     items: items,
@@ -3802,6 +4056,7 @@
 
         document.getElementById('logo-upload').addEventListener('change', handleLogoUpload);
 
+        // Initialisation
         updateInvoiceTotals();
 
         const today = new Date();
@@ -3812,10 +4067,21 @@
         document.getElementById('invoiceDueDate').valueAsDate = dueDate;
 
         document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 Initialisation de E-FACTURE...');
+            
+            // Tester la connexion JSONBin
+            const connectionOK = await testJsonBinConnection();
+            
+            if (!connectionOK) {
+                showNotification('Connexion au serveur de données limitée. Mode hors ligne activé.', 'warning');
+            }
+            
             try {
                 await database.init();
+                console.log('✅ Application initialisée avec succès');
             } catch (error) {
-                showNotification('Erreur lors du chargement de l\'application: ' + error.message, 'error');
+                console.error('❌ Erreur lors de l\'initialisation:', error);
+                showNotification('Erreur lors du chargement des données. Veuillez rafraîchir la page.', 'error');
             }
         });
     </script>
