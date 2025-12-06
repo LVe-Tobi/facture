@@ -994,6 +994,138 @@
             background-color: #4361ee;
             color: white;
         }
+        
+        /* Styles pour les notifications */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .notification-popup {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            width: 300px;
+            z-index: 9999;
+            transform: translateX(120%);
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .notification-popup.show {
+            transform: translateX(0);
+        }
+        
+        .notification-popup.new-message {
+            border-left-color: var(--primary);
+        }
+        
+        .notification-popup.admin-message {
+            border-left-color: var(--admin);
+        }
+        
+        .notification-popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .notification-popup-title {
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .notification-popup-close {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .notification-popup-content {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .notification-popup-time {
+            font-size: 0.75rem;
+            color: var(--gray);
+            margin-top: 8px;
+            text-align: right;
+        }
+        
+        /* Styles pour la liste des notifications dropdown */
+        .dropdown-menu.notifications-dropdown {
+            width: 350px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .notification-item {
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+        
+        .notification-item.unread {
+            background-color: #f8f9fa;
+        }
+        
+        .notification-item .notification-content {
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        
+        .notification-item .notification-time {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+        
+        /* Animation pour la notification */
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1009,6 +1141,23 @@
     <div id="notification" class="notification">
         <i class="fas fa-check-circle"></i>
         <span id="notification-text">Opération réussie</span>
+    </div>
+
+    <!-- Popup de notification -->
+    <div id="notification-popup" class="notification-popup">
+        <div class="notification-popup-header">
+            <div class="notification-popup-title">
+                <i class="fas fa-envelope"></i>
+                <span id="notification-popup-title">Nouveau message</span>
+            </div>
+            <button class="notification-popup-close" id="close-notification-popup">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="notification-popup-content" id="notification-popup-content">
+            <!-- Le contenu de la notification apparaîtra ici -->
+        </div>
+        <div class="notification-popup-time" id="notification-popup-time"></div>
     </div>
 
     <!-- Page de Connexion -->
@@ -1123,6 +1272,38 @@
                     <i class="fas fa-file-invoice-dollar"></i>E-FACTURE
                 </a>
                 <div class="navbar-nav ms-auto">
+                    <!-- Bouton de notifications -->
+                    <div class="nav-item dropdown me-3">
+                        <a class="nav-link position-relative" href="#" id="notification-dropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-bell"></i>
+                            <span id="notification-count" class="notification-badge" style="display: none;">0</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end notifications-dropdown" id="notification-list" style="width: 350px;">
+                            <li class="dropdown-header d-flex justify-content-between align-items-center">
+                                <span>Notifications</span>
+                                <button class="btn btn-sm btn-link text-decoration-none p-0" onclick="NotificationSystem.markAllAsRead()">
+                                    <small>Marquer tout comme lu</small>
+                                </button>
+                            </li>
+                            <li><hr class="dropdown-divider m-0"></li>
+                            <div id="notification-items-container">
+                                <li id="notification-empty">
+                                    <a class="dropdown-item text-center py-4">
+                                        <i class="fas fa-bell-slash fa-2x text-muted mb-2"></i>
+                                        <p class="mb-0 text-muted">Aucune notification</p>
+                                    </a>
+                                </li>
+                            </div>
+                            <li><hr class="dropdown-divider m-0"></li>
+                            <li>
+                                <a class="dropdown-item text-center text-danger" href="#" onclick="NotificationSystem.clearAllNotifications()">
+                                    <i class="fas fa-trash me-1"></i> Effacer toutes les notifications
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Menu utilisateur -->
                     <div class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
                             <div class="user-avatar me-2">
@@ -1170,6 +1351,7 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="#messages">
                                     <i class="fas fa-envelope"></i> Messages
+                                    <span id="sidebar-message-count" class="badge bg-danger ms-2" style="display: none;">0</span>
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -1517,6 +1699,13 @@
                     <i class="fas fa-file-invoice-dollar"></i>E-FACTURE <span class="admin-badge">ADMIN</span>
                 </a>
                 <div class="navbar-nav ms-auto">
+                    <!-- Bouton de test des notifications -->
+                    <div class="nav-item me-3">
+                        <button class="btn btn-sm btn-outline-light" onclick="simulateAdminMessage()" title="Tester les notifications">
+                            <i class="fas fa-bell"></i> Tester Notif
+                        </button>
+                    </div>
+                    
                     <div class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex align-items-center text-white" href="#" id="navbarDropdownAdmin" role="button" data-bs-toggle="dropdown">
                             <div class="user-avatar admin-avatar me-2">
@@ -2339,6 +2528,241 @@
         };
 
         // =============================================
+        // SYSTÈME DE NOTIFICATIONS
+        // =============================================
+
+        const NotificationSystem = {
+            notifications: [],
+            
+            init() {
+                this.loadNotifications();
+                this.setupEventListeners();
+                this.updateNotificationBadge();
+            },
+            
+            loadNotifications() {
+                try {
+                    const stored = localStorage.getItem('efacture_notifications');
+                    if (stored) {
+                        this.notifications = JSON.parse(stored);
+                    }
+                } catch (error) {
+                    console.error('Erreur chargement notifications:', error);
+                    this.notifications = [];
+                }
+            },
+            
+            saveNotifications() {
+                try {
+                    localStorage.setItem('efacture_notifications', JSON.stringify(this.notifications));
+                } catch (error) {
+                    console.error('Erreur sauvegarde notifications:', error);
+                }
+            },
+            
+            addNotification(type, title, content, link = null) {
+                const notification = {
+                    id: Date.now().toString(),
+                    type: type,
+                    title: title,
+                    content: content,
+                    link: link,
+                    timestamp: new Date().toISOString(),
+                    read: false
+                };
+                
+                this.notifications.unshift(notification);
+                this.saveNotifications();
+                this.updateNotificationBadge();
+                this.showNotificationPopup(notification);
+                this.updateNotificationDropdown();
+                
+                // Mettre à jour le badge sur la sidebar messages
+                this.updateSidebarMessageBadge();
+            },
+            
+            markAsRead(notificationId) {
+                const notification = this.notifications.find(n => n.id === notificationId);
+                if (notification && !notification.read) {
+                    notification.read = true;
+                    this.saveNotifications();
+                    this.updateNotificationBadge();
+                    this.updateNotificationDropdown();
+                    this.updateSidebarMessageBadge();
+                }
+            },
+            
+            markAllAsRead() {
+                this.notifications.forEach(notification => {
+                    notification.read = true;
+                });
+                this.saveNotifications();
+                this.updateNotificationBadge();
+                this.updateNotificationDropdown();
+                this.updateSidebarMessageBadge();
+                showNotification('Toutes les notifications ont été marquées comme lues');
+            },
+            
+            removeNotification(notificationId) {
+                this.notifications = this.notifications.filter(n => n.id !== notificationId);
+                this.saveNotifications();
+                this.updateNotificationBadge();
+                this.updateNotificationDropdown();
+                this.updateSidebarMessageBadge();
+            },
+            
+            clearAllNotifications() {
+                if (this.notifications.length === 0) {
+                    showNotification('Aucune notification à effacer', 'warning');
+                    return;
+                }
+                
+                if (confirm('Êtes-vous sûr de vouloir effacer toutes les notifications ?')) {
+                    this.notifications = [];
+                    this.saveNotifications();
+                    this.updateNotificationBadge();
+                    this.updateNotificationDropdown();
+                    this.updateSidebarMessageBadge();
+                    showNotification('Toutes les notifications ont été effacées');
+                }
+            },
+            
+            updateNotificationBadge() {
+                const unreadCount = this.notifications.filter(n => !n.read).length;
+                const badge = document.getElementById('notification-count');
+                
+                if (badge) {
+                    if (unreadCount > 0) {
+                        badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+                        badge.style.display = 'flex';
+                        badge.classList.add('pulse');
+                    } else {
+                        badge.style.display = 'none';
+                        badge.classList.remove('pulse');
+                    }
+                }
+            },
+            
+            updateSidebarMessageBadge() {
+                const unreadMessages = this.notifications.filter(n => 
+                    n.type === 'admin_message' && !n.read
+                ).length;
+                
+                const sidebarBadge = document.getElementById('sidebar-message-count');
+                if (sidebarBadge) {
+                    if (unreadMessages > 0) {
+                        sidebarBadge.textContent = unreadMessages;
+                        sidebarBadge.style.display = 'inline';
+                    } else {
+                        sidebarBadge.style.display = 'none';
+                    }
+                }
+            },
+            
+            showNotificationPopup(notification) {
+                const popup = document.getElementById('notification-popup');
+                const title = document.getElementById('notification-popup-title');
+                const content = document.getElementById('notification-popup-content');
+                const time = document.getElementById('notification-popup-time');
+                
+                if (!popup || !title || !content || !time) return;
+                
+                title.textContent = notification.title;
+                content.textContent = notification.content;
+                time.textContent = this.formatTimeAgo(notification.timestamp);
+                
+                popup.className = 'notification-popup';
+                if (notification.type === 'admin_message') {
+                    popup.classList.add('admin-message');
+                } else if (notification.type === 'new_message') {
+                    popup.classList.add('new-message');
+                }
+                
+                popup.classList.add('show');
+                
+                setTimeout(() => {
+                    popup.classList.remove('show');
+                }, 5000);
+            },
+            
+            updateNotificationDropdown() {
+                const container = document.getElementById('notification-items-container');
+                const emptyItem = document.getElementById('notification-empty');
+                
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                const sortedNotifications = [...this.notifications].sort((a, b) => 
+                    new Date(b.timestamp) - new Date(a.timestamp)
+                ).slice(0, 10);
+                
+                if (sortedNotifications.length === 0) {
+                    emptyItem.style.display = 'block';
+                    container.appendChild(emptyItem);
+                    return;
+                }
+                
+                emptyItem.style.display = 'none';
+                
+                sortedNotifications.forEach(notification => {
+                    const isUnread = !notification.read;
+                    
+                    const notificationItem = document.createElement('li');
+                    notificationItem.className = `notification-item ${isUnread ? 'unread' : ''}`;
+                    notificationItem.innerHTML = `
+                        <a class="dropdown-item ${isUnread ? 'fw-bold' : ''}" href="${notification.link || '#'}" onclick="NotificationSystem.markAsRead('${notification.id}'); return true;">
+                            <div class="d-flex w-100 align-items-start">
+                                <div class="flex-shrink-0 me-3 mt-1">
+                                    <i class="fas fa-${notification.type === 'admin_message' ? 'user-shield text-admin' : 'envelope text-primary'}"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">${notification.title}</h6>
+                                    <p class="mb-1 small text-truncate">${notification.content}</p>
+                                    <small class="text-muted">${this.formatTimeAgo(notification.timestamp)}</small>
+                                </div>
+                                ${isUnread ? '<span class="badge bg-primary rounded-pill">Nouveau</span>' : ''}
+                            </div>
+                        </a>
+                    `;
+                    container.appendChild(notificationItem);
+                });
+            },
+            
+            formatTimeAgo(timestamp) {
+                const now = new Date();
+                const date = new Date(timestamp);
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+                
+                if (diffMins < 1) return 'À l\'instant';
+                if (diffMins < 60) return `Il y a ${diffMins} min`;
+                if (diffHours < 24) return `Il y a ${diffHours} h`;
+                if (diffDays < 7) return `Il y a ${diffDays} j`;
+                return date.toLocaleDateString('fr-FR');
+            },
+            
+            setupEventListeners() {
+                const closeBtn = document.getElementById('close-notification-popup');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        const popup = document.getElementById('notification-popup');
+                        popup.classList.remove('show');
+                    });
+                }
+                
+                document.addEventListener('click', (e) => {
+                    const popup = document.getElementById('notification-popup');
+                    if (popup && !popup.contains(e.target) && e.target.id !== 'notification-dropdown') {
+                        popup.classList.remove('show');
+                    }
+                });
+            }
+        };
+
+        // =============================================
         // BASE DE DONNÉES AMÉLIORÉE
         // =============================================
 
@@ -2372,10 +2796,6 @@
                     console.log(`🏫 ${this.drivingSchools.length} auto-école(s) chargée(s)`);
                     console.log(`👥 ${this.candidates.length} candidat(s) chargé(s)`);
                     console.log(`🧾 ${this.invoices.length} facture(s) chargée(s)`);
-                    
-                    this.drivingSchools.forEach((school, index) => {
-                        console.log(`Auto-école ${index + 1}: ${school.name} (${school.email}) - Status: ${school.status}`);
-                    });
                     
                 } catch (error) {
                     console.error('Erreur initialisation:', error);
@@ -2674,6 +3094,17 @@
                 (m.recipient === 'all' || m.recipient === currentSchoolId)
             );
             
+            // Marquer toutes les notifications comme lues quand on visite la page messages
+            NotificationSystem.notifications.forEach(notification => {
+                if (notification.type === 'admin_message') {
+                    notification.read = true;
+                }
+            });
+            NotificationSystem.saveNotifications();
+            NotificationSystem.updateNotificationBadge();
+            NotificationSystem.updateNotificationDropdown();
+            NotificationSystem.updateSidebarMessageBadge();
+            
             if (schoolMessages.length === 0) {
                 schoolMessagesList.innerHTML = `
                     <div class="text-center py-5">
@@ -2766,12 +3197,36 @@
                 database.messages.push(messageData);
                 await database.save();
                 
+                // Envoyer des notifications aux auto-écoles concernées
                 if (recipient === 'all') {
+                    // Notification pour toutes les auto-écoles validées
+                    const schools = database.drivingSchools.filter(s => s.status === 'validated');
+                    schools.forEach(school => {
+                        NotificationSystem.addNotification(
+                            'admin_message',
+                            'Nouveau message de l\'administrateur',
+                            subject,
+                            '#messages'
+                        );
+                    });
+                    
                     messageData.readBy.push('admin');
+                } else {
+                    // Notification pour une auto-école spécifique
+                    const school = database.drivingSchools.find(s => s.id === recipient);
+                    if (school) {
+                        NotificationSystem.addNotification(
+                            'admin_message',
+                            'Message de l\'administrateur',
+                            subject,
+                            '#messages'
+                        );
+                    }
                 }
                 
                 showNotification('Message envoyé avec succès !');
                 loadAdminMessages();
+                
             } catch (error) {
                 showNotification(error.message, 'error');
             }
@@ -3166,7 +3621,10 @@
             const invoice = database.invoices.find(i => i.id === invoiceId);
             if (!invoice) return;
             
-            showNotification(`Génération du PDF pour la facture ${invoice.number}...`, 'warning');
+            const candidate = database.candidates.find(c => c.id === invoice.candidateId) || {};
+            const fileName = `Facture_${candidate.lastName}_${candidate.firstName}_${invoice.number}.pdf`;
+            
+            showNotification(`Génération du PDF pour ${fileName}...`, 'warning');
             
             const element = document.getElementById('invoice-to-print');
             
@@ -3234,11 +3692,11 @@
                     const lowQualityImgData = canvas.toDataURL('image/jpeg', 0.5);
                     const pdfLow = new jsPDF('p', 'mm', 'a4');
                     pdfLow.addImage(lowQualityImgData, 'JPEG', 0, 0, imgWidth, imgHeight);
-                    pdfLow.save(`facture-${invoice.number}.pdf`);
-                    showNotification(`Facture ${invoice.number} téléchargée (taille réduite) !`);
+                    pdfLow.save(fileName);
+                    showNotification(`Facture ${fileName} téléchargée (taille réduite) !`);
                 } else {
-                    pdf.save(`facture-${invoice.number}.pdf`);
-                    showNotification(`Facture ${invoice.number} téléchargée avec succès ! (${fileSize.toFixed(2)} Mo)`);
+                    pdf.save(fileName);
+                    showNotification(`Facture ${fileName} téléchargée avec succès ! (${fileSize.toFixed(2)} Mo)`);
                 }
             }).catch(error => {
                 console.error('Erreur lors de la génération du PDF:', error);
@@ -3514,6 +3972,31 @@
                 }
             }
         }
+        
+        // =============================================
+        // FONCTION POUR SIMULER UN MESSAGE ADMIN
+        // =============================================
+        
+        function simulateAdminMessage() {
+            const messages = [
+                "Nouvelle fonctionnalité disponible !",
+                "Mise à jour du système de facturation",
+                "Rappel : Envoi des déclarations mensuelles",
+                "Formation en ligne disponible",
+                "Maintenance prévue ce week-end"
+            ];
+            
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            
+            NotificationSystem.addNotification(
+                'admin_message',
+                'Message de l\'administrateur',
+                randomMessage,
+                '#messages'
+            );
+            
+            showNotification('Notification de test envoyée !');
+        }
 
         // =============================================
         // GESTION DES ÉVÉNEMENTS
@@ -3557,12 +4040,10 @@
             
             try {
                 if (userType === 'admin') {
-                    // Connexion administrateur
                     if (email === 'admin@efacture.com' && password === 'admin123') {
                         document.getElementById('login-page').classList.remove('active');
                         document.getElementById('admin-app').classList.add('active');
                         
-                        // Initialiser les données après connexion
                         if (database.drivingSchools.length === 0) {
                             await database.init();
                         }
@@ -3575,13 +4056,11 @@
                         showNotification('Identifiants administrateur incorrects', 'error');
                     }
                 } else {
-                    // Connexion auto-école
                     const school = database.drivingSchools.find(s => 
                         s.email.toLowerCase() === email.toLowerCase()
                     );
                     
                     if (school) {
-                        // Vérifier le mot de passe (dans un cas réel, utiliser le hachage)
                         if (school.password !== password) {
                             showNotification('Mot de passe incorrect', 'error');
                             return;
@@ -3592,26 +4071,44 @@
                             return;
                         }
                         
-                        // Stocker l'ID de l'auto-école connectée
                         localStorage.setItem('currentSchoolId', school.id);
                         localStorage.setItem('currentSchoolName', school.name);
                         localStorage.setItem('currentSchoolEmail', school.email);
                         
-                        // Mettre à jour l'interface
                         document.getElementById('current-school-name').textContent = school.name;
                         document.getElementById('login-page').classList.remove('active');
                         document.getElementById('main-app').classList.add('active');
                         
-                        // Initialiser et charger les données
                         if (database.candidates.length === 0) {
                             await database.init();
+                        }
+                        
+                        // Initialiser le système de notifications
+                        NotificationSystem.init();
+                        
+                        // Vérifier s'il y a des messages non lus
+                        const schoolMessages = database.messages.filter(m => 
+                            m.sender === 'admin' && 
+                            (m.recipient === 'all' || m.recipient === school.id)
+                        );
+                        
+                        const unreadMessages = schoolMessages.filter(m => 
+                            !m.readBy || !m.readBy.includes(school.id)
+                        );
+                        
+                        if (unreadMessages.length > 0) {
+                            NotificationSystem.addNotification(
+                                'admin_message',
+                                'Messages non lus',
+                                `Vous avez ${unreadMessages.length} message(s) non lu(s) de l'administrateur`,
+                                '#messages'
+                            );
                         }
                         
                         await loadData();
                         loadCandidatesForInvoice();
                         loadSchoolMessages();
                         
-                        // Charger les paramètres de l'auto-école
                         loadSchoolSettings(school.id);
                         
                         showNotification(`Connexion réussie ! Bienvenue ${school.name}`);
@@ -3632,7 +4129,6 @@
             const email = document.getElementById('register-email').value.trim();
             const phone = document.getElementById('register-phone').value.trim();
             
-            // Validation des données
             if (password !== confirmPassword) {
                 showNotification('Les mots de passe ne correspondent pas', 'error');
                 return;
@@ -3667,7 +4163,6 @@
                     password: password
                 };
                 
-                // Validation des données
                 if (!schoolData.name || !schoolData.email || !schoolData.phone) {
                     showNotification('Veuillez remplir tous les champs obligatoires', 'error');
                     return;
@@ -3679,7 +4174,6 @@
                 document.getElementById('register-page').classList.remove('active');
                 document.getElementById('login-page').classList.add('active');
                 
-                // Réinitialiser le formulaire
                 document.getElementById('register-form').reset();
                 
             } catch (error) {
@@ -3808,7 +4302,6 @@
                 const paymentMethod = document.getElementById('invoicePayment').value;
                 const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
                 
-                // Récupérer les catégories sélectionnées (multiple)
                 const selectedCategories = Array.from(licenseCategorySelect.selectedOptions)
                     .map(option => option.value);
                 
@@ -4069,7 +4562,6 @@
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🚀 Initialisation de E-FACTURE...');
             
-            // Tester la connexion JSONBin
             const connectionOK = await testJsonBinConnection();
             
             if (!connectionOK) {
@@ -4079,6 +4571,9 @@
             try {
                 await database.init();
                 console.log('✅ Application initialisée avec succès');
+                
+                // Initialiser le système de notifications
+                NotificationSystem.init();
             } catch (error) {
                 console.error('❌ Erreur lors de l\'initialisation:', error);
                 showNotification('Erreur lors du chargement des données. Veuillez rafraîchir la page.', 'error');
